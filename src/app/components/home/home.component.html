@@ -1,0 +1,20 @@
+<div class="home-container">
+  <div class="welcome-section">
+    <h2>{{ welcomeMessage }}</h2>
+    <p class="subtitle">نظام متكامل لإدارة موارد المؤسسة بكفاءة عالية</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card" *ngFor="let feature of features">
+      <div class="feature-icon">{{ feature.icon }}</div>
+      <h3>{{ feature.title }}</h3>
+      <p>{{ feature.description }}</p>
+    </div>
+  </div>
+
+  <div class="action-section">
+    <button class="primary-button">ابدأ الآن</button>
+    <button class="secondary-button">تعرف أكثر</button>
+  </div>
+</div>
+
