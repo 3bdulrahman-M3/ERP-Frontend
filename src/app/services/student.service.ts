@@ -1,0 +1,101 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+
+export interface Student {
+  id: number;
+  name: string;
+  email: string;
+  college: string;
+  age: number;
+  phoneNumber: string;
+  qrCode: string;
+  userId: number;
+  createdAt: string;
+  updatedAt: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+  };
+}
+
+export interface CreateStudentRequest {
+  name: string;
+  email: string;
+  password: string;
+  college: string;
+  age: number;
+  phoneNumber: string;
+}
+
+export interface UpdateStudentRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+  college?: string;
+  age?: number;
+  phoneNumber?: string;
+}
+
+export interface StudentsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    students: Student[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
+}
+
+export interface StudentResponse {
+  success: boolean;
+  message: string;
+  data: Student;
+}
+
+export interface DeleteResponse {
+  success: boolean;
+  message: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class StudentService {
+  private apiUrl = `${environment.apiUrl}/api/students`;
+
+  constructor(private http: HttpClient) {}
+
+  createStudent(student: CreateStudentRequest): Observable<StudentResponse> {
+    return this.http.post<StudentResponse>(this.apiUrl, student);
+  }
+
+  getAllStudents(page: number = 1, limit: number = 10): Observable<StudentsResponse> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    
+    return this.http.get<StudentsResponse>(this.apiUrl, { params });
+  }
+
+  getStudentById(id: number): Observable<StudentResponse> {
+    return this.http.get<StudentResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  updateStudent(id: number, student: UpdateStudentRequest): Observable<StudentResponse> {
+    return this.http.put<StudentResponse>(`${this.apiUrl}/${id}`, student);
+  }
+
+  deleteStudent(id: number): Observable<DeleteResponse> {
+    return this.http.delete<DeleteResponse>(`${this.apiUrl}/${id}`);
+  }
+}
+

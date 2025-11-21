@@ -1,0 +1,114 @@
+<app-layout pageTitle="تفاصيل الطالب">
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div class="flex items-center space-x-3 space-x-reverse">
+      <button
+        (click)="goBack()"
+        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
+      >
+        رجوع
+      </button>
+      <button
+        (click)="editStudent()"
+        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition duration-200"
+      >
+        تعديل
+      </button>
+      <button
+        (click)="deleteStudent()"
+        class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition duration-200"
+      >
+        حذف
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <p class="text-sm text-red-600">{{ errorMessage }}</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+
+  <!-- Student Details -->
+  <div *ngIf="!isLoading && student" class="bg-white rounded-lg shadow-sm p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Basic Info -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">الاسم</label>
+          <p class="text-lg font-semibold text-gray-900">{{ student.name }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">البريد الإلكتروني</label>
+          <p class="text-lg text-gray-900">{{ student.email }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">الكلية</label>
+          <p class="text-lg text-gray-900">{{ student.college }}</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">العمر</label>
+          <p class="text-lg text-gray-900">{{ student.age }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">رقم الهاتف</label>
+          <p class="text-lg text-gray-900">{{ student.phoneNumber }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الإنشاء</label>
+          <p class="text-lg text-gray-900">{{ student.createdAt | date: 'yyyy-MM-dd HH:mm' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Code -->
+    <div class="mt-8 pt-8 border-t border-gray-200">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-800">QR Code</h3>
+        <button
+          (click)="downloadQRCode()"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition duration-200 flex items-center space-x-2 space-x-reverse"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>تحميل QR Code</span>
+        </button>
+      </div>
+      <div class="flex justify-center">
+        <img [src]="student.qrCode" alt="QR Code" class="w-64 h-64 border border-gray-300 rounded-lg p-4 bg-white">
+      </div>
+    </div>
+
+    <!-- User Info -->
+    <div *ngIf="student.user" class="mt-8 pt-8 border-t border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">معلومات الحساب</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">الدور</label>
+          <span [class]="student.user.role === 'admin' ? 'bg-blue-600' : 'bg-green-600'" 
+                class="px-3 py-1 rounded-full text-white text-sm">
+            {{ student.user.role === 'admin' ? 'مدير' : 'طالب' }}
+          </span>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">الحالة</label>
+          <span [class]="student.user.isActive ? 'bg-green-600' : 'bg-red-600'" 
+                class="px-3 py-1 rounded-full text-white text-sm">
+            {{ student.user.isActive ? 'نشط' : 'غير نشط' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</app-layout>
+
