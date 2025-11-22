@@ -25,8 +25,7 @@ export class LayoutComponent implements OnInit {
     return [
       { icon: '📊', label: 'لوحة التحكم', route: '/dashboard', active: false, adminOnly: false },
       { icon: '🎓', label: 'الطلاب', route: '/dashboard/students', active: false, adminOnly: true },
-      { icon: '👥', label: 'المستخدمين', route: '/dashboard/users', active: false, adminOnly: true },
-      { icon: '📚', label: 'الدورات', route: '/dashboard/courses', active: false, adminOnly: false },
+      { icon: '🏠', label: 'الغرف', route: '/dashboard/rooms', active: false, adminOnly: true },
       { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false, adminOnly: true },
       { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false, adminOnly: false },
     ].filter(item => !item.adminOnly || isAdmin);

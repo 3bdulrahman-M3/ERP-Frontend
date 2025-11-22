@@ -1,0 +1,199 @@
+<app-layout pageTitle="الغرف">
+<div class="p-6 animate-fade-in">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-8 animate-slide-down">
+    <div>
+      <h2 class="text-4xl font-bold gradient-text mb-2">إدارة الغرف</h2>
+      <p class="text-gray-600">إدارة جميع الغرف في النظام</p>
+    </div>
+    <button
+      (click)="addNewRoom()"
+      class="btn-primary px-6 py-3 text-white rounded-2xl font-bold shadow-xl flex items-center space-x-2 space-x-reverse transform hover:scale-105 transition-all duration-300"
+    >
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>إضافة غرفة جديدة</span>
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 animate-slide-up">
+    <h3 class="text-lg font-bold text-gray-800 mb-4">فلترة البحث</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">الحالة</label>
+        <select
+          [(ngModel)]="statusFilter"
+          class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+        >
+          <option value="">الكل</option>
+          <option value="available">متاحة</option>
+          <option value="occupied">مشغولة</option>
+          <option value="maintenance">صيانة</option>
+          <option value="reserved">محجوزة</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">المبنى</label>
+        <input
+          type="text"
+          [(ngModel)]="buildingFilter"
+          placeholder="اسم المبنى"
+          class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">الطابق</label>
+        <input
+          type="number"
+          [(ngModel)]="floorFilter"
+          placeholder="رقم الطابق"
+          class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+        />
+      </div>
+      <div class="flex items-end gap-2">
+        <button
+          (click)="applyFilters()"
+          class="btn-primary px-6 py-2 text-white rounded-xl font-semibold flex-1"
+        >
+          تطبيق
+        </button>
+        <button
+          (click)="clearFilters()"
+          class="px-6 py-2 border border-gray-300 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 flex-1"
+        >
+          مسح
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+    <p class="text-sm text-red-600">{{ errorMessage }}</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+
+  <!-- Rooms Grid -->
+  <div *ngIf="!isLoading && rooms.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let room of rooms"
+      class="bg-white rounded-2xl shadow-lg p-6 card-hover animate-scale-in"
+    >
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="text-2xl font-bold text-gray-800 mb-1">غرفة {{ room.roomNumber }}</h3>
+          <p class="text-sm text-gray-600" *ngIf="room.building">
+            {{ room.building }} - الطابق {{ room.floor }}
+          </p>
+        </div>
+        <span
+          [class]="getStatusColor(room.status)"
+          class="px-3 py-1 rounded-full text-white text-xs font-bold"
+        >
+          {{ getStatusLabel(room.status) }}
+        </span>
+      </div>
+
+      <div class="space-y-3 mb-4">
+        <div class="flex items-center justify-between">
+          <span class="text-gray-600">إجمالي الأسرة</span>
+          <span class="font-bold text-gray-800">{{ room.totalBeds }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-600">الأسرة المتاحة</span>
+          <span class="font-bold text-blue-600">{{ room.availableBeds }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-600">الأسرة المشغولة</span>
+          <span class="font-bold text-gray-800">{{ room.totalBeds - room.availableBeds }}</span>
+        </div>
+      </div>
+
+      <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+        <div
+          class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+          [style.width.%]="((room.totalBeds - room.availableBeds) / room.totalBeds) * 100"
+        ></div>
+      </div>
+
+      <p class="text-sm text-gray-600 mb-4" *ngIf="room.description">
+        {{ room.description }}
+      </p>
+
+      <div class="flex gap-2">
+        <button
+          (click)="viewRoom(room.id)"
+          class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition duration-200"
+        >
+          عرض
+        </button>
+        <button
+          (click)="editRoom(room.id)"
+          class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition duration-200"
+        >
+          تعديل
+        </button>
+        <button
+          (click)="deleteRoom(room.id, room.roomNumber)"
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition duration-200"
+        >
+          🗑️
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="totalPages > 1" class="mt-6 flex justify-center">
+    <div class="flex items-center gap-2">
+      <button
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+        class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        السابق
+      </button>
+      <button
+        *ngFor="let page of getPageNumbers()"
+        (click)="goToPage(page)"
+        [class.bg-blue-600.text-white]="page === currentPage"
+        [class.bg-white.border.border-gray-300.text-gray-700.hover:bg-gray-50]="page !== currentPage"
+        class="px-4 py-2 rounded-xl font-semibold transition duration-200"
+      >
+        {{ page }}
+      </button>
+      <button
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+        class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        التالي
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && rooms.length === 0" class="bg-white rounded-2xl shadow-lg p-12 text-center">
+    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">لا توجد غرف</h3>
+    <p class="mt-1 text-sm text-gray-500">ابدأ بإضافة غرفة جديدة.</p>
+    <div class="mt-6">
+      <button
+        (click)="addNewRoom()"
+        class="btn-primary inline-flex items-center px-4 py-2 rounded-xl text-white font-semibold"
+      >
+        إضافة غرفة جديدة
+      </button>
+    </div>
+  </div>
+</div>
+</app-layout>
+

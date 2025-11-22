@@ -1,0 +1,152 @@
+<app-layout [pageTitle]="isEditMode ? 'تعديل غرفة' : 'إضافة غرفة جديدة'">
+<div class="p-6 animate-fade-in">
+  <!-- Header -->
+  <div class="mb-6">
+    <h2 class="text-4xl font-bold gradient-text">
+      {{ isEditMode ? 'تعديل بيانات الغرفة' : 'إضافة غرفة جديدة' }}
+    </h2>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl animate-scale-in">
+    <p class="text-sm text-green-600">{{ successMessage }}</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-scale-in">
+    <p class="text-sm text-red-600">{{ errorMessage }}</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading && isEditMode" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+
+  <!-- Form -->
+  <form *ngIf="!isLoading || !isEditMode" (ngSubmit)="onSubmit()" class="bg-white rounded-2xl shadow-xl p-8 animate-slide-up">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Room Number -->
+      <div>
+        <label for="roomNumber" class="block text-sm font-bold text-gray-700 mb-2">
+          رقم الغرفة <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="roomNumber"
+          type="text"
+          [(ngModel)]="formData.roomNumber"
+          name="roomNumber"
+          required
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="101"
+        />
+      </div>
+
+      <!-- Total Beds -->
+      <div>
+        <label for="totalBeds" class="block text-sm font-bold text-gray-700 mb-2">
+          عدد الأسرة <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="totalBeds"
+          type="number"
+          [(ngModel)]="formData.totalBeds"
+          name="totalBeds"
+          required
+          min="1"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="4"
+        />
+      </div>
+
+      <!-- Floor -->
+      <div>
+        <label for="floor" class="block text-sm font-bold text-gray-700 mb-2">
+          الطابق
+        </label>
+        <input
+          id="floor"
+          type="number"
+          [(ngModel)]="formData.floor"
+          name="floor"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="1"
+        />
+      </div>
+
+      <!-- Building -->
+      <div>
+        <label for="building" class="block text-sm font-bold text-gray-700 mb-2">
+          المبنى
+        </label>
+        <input
+          id="building"
+          type="text"
+          [(ngModel)]="formData.building"
+          name="building"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="Building A"
+        />
+      </div>
+
+      <!-- Status -->
+      <div>
+        <label for="status" class="block text-sm font-bold text-gray-700 mb-2">
+          الحالة
+        </label>
+        <select
+          id="status"
+          [(ngModel)]="formData.status"
+          name="status"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        >
+          <option value="available">متاحة</option>
+          <option value="occupied">مشغولة</option>
+          <option value="maintenance">صيانة</option>
+          <option value="reserved">محجوزة</option>
+        </select>
+      </div>
+
+      <!-- Description -->
+      <div class="md:col-span-2">
+        <label for="description" class="block text-sm font-bold text-gray-700 mb-2">
+          الوصف
+        </label>
+        <textarea
+          id="description"
+          [(ngModel)]="formData.description"
+          name="description"
+          rows="3"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="وصف الغرفة..."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="mt-8 flex items-center justify-end space-x-4 space-x-reverse">
+      <button
+        type="button"
+        (click)="cancel()"
+        class="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition duration-200"
+      >
+        إلغاء
+      </button>
+      <button
+        type="submit"
+        [disabled]="isLoading"
+        class="btn-primary px-6 py-3 text-white rounded-xl font-bold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x-reverse"
+      >
+        <span *ngIf="!isLoading">{{ isEditMode ? 'تحديث' : 'إضافة' }}</span>
+        <span *ngIf="isLoading" class="flex items-center">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          جاري الحفظ...
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
+</app-layout>
+

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService, User } from '../../services/auth.service';
+import { StudentService } from '../../services/student.service';
+import { RoomService } from '../../services/room.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
 
 @Component({
@@ -18,6 +20,13 @@ export class DashboardComponent implements OnInit {
   isSidebarOpen = true;
   currentRoute = '/dashboard';
 
+  // Statistics
+  totalStudents = 0;
+  totalRooms = 0;
+  availableRooms = 0;
+  occupiedRooms = 0;
+  isLoadingStats = false;
+
   menuItems = [
     { icon: '📊', label: 'لوحة التحكم', route: '/dashboard', active: true },
     { icon: '🎓', label: 'الطلاب', route: '/dashboard/students', active: false },
@@ -29,6 +38,8 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
+    private studentService: StudentService,
+    private roomService: RoomService,
     public router: Router,
     private route: ActivatedRoute
   ) {}
@@ -38,6 +49,11 @@ export class DashboardComponent implements OnInit {
     this.currentRoute = this.router.url;
     this.updatePageTitle();
     
+    // Load statistics if admin
+    if (this.currentUser?.role === 'admin') {
+      this.loadStatistics();
+    }
+    
     // Update title when route changes
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -45,6 +61,70 @@ export class DashboardComponent implements OnInit {
       this.currentRoute = this.router.url;
       this.updatePageTitle();
     });
+  }
+
+  loadStatistics() {
+    this.isLoadingStats = true;
+
+    // Load students count
+    this.studentService.getAllStudents(1, 1).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.totalStudents = response.data.pagination.total;
+        }
+        this.checkStatsLoaded();
+      },
+      error: () => {
+        this.checkStatsLoaded();
+      }
+    });
+
+    // Load rooms statistics
+    this.roomService.getAllRooms(1, 1).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.totalRooms = response.data.pagination.total;
+        }
+        this.loadRoomsDetails();
+      },
+      error: () => {
+        this.isLoadingStats = false;
+      }
+    });
+  }
+
+  loadRoomsDetails() {
+    // Load available rooms
+    this.roomService.getAllRooms(1, 100, { status: 'available' }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.availableRooms = response.data.pagination.total;
+        }
+        this.loadOccupiedRooms();
+      },
+      error: () => {
+        this.isLoadingStats = false;
+      }
+    });
+  }
+
+  loadOccupiedRooms() {
+    // Load occupied rooms
+    this.roomService.getAllRooms(1, 100, { status: 'occupied' }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.occupiedRooms = response.data.pagination.total;
+        }
+        this.isLoadingStats = false;
+      },
+      error: () => {
+        this.isLoadingStats = false;
+      }
+    });
+  }
+
+  checkStatsLoaded() {
+    // Helper method to check if all stats are loaded
   }
 
   updatePageTitle() {

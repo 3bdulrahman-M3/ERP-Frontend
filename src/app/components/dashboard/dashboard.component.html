@@ -49,37 +49,67 @@
     </div>
 
     <!-- Quick Stats - Admin Only -->
-    <div *ngIf="currentUser?.role === 'admin'" class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
+    <div *ngIf="currentUser?.role === 'admin'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up">
+      <!-- Total Students -->
       <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-6 text-white shadow-xl card-hover transform hover:scale-105 transition-all duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-blue-100 text-sm font-semibold mb-2">إجمالي المستخدمين</p>
-            <p class="text-4xl font-bold">0</p>
+            <p class="text-blue-100 text-sm font-semibold mb-2">إجمالي الطلاب</p>
+            <p class="text-4xl font-bold">
+              <span *ngIf="!isLoadingStats">{{ totalStudents }}</span>
+              <span *ngIf="isLoadingStats" class="animate-pulse">...</span>
+            </p>
           </div>
           <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
-            <span class="text-4xl">👥</span>
+            <span class="text-4xl">🎓</span>
           </div>
         </div>
       </div>
+
+      <!-- Total Rooms -->
       <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-3xl p-6 text-white shadow-xl card-hover transform hover:scale-105 transition-all duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-cyan-100 text-sm font-semibold mb-2">الدورات النشطة</p>
-            <p class="text-4xl font-bold">0</p>
+            <p class="text-cyan-100 text-sm font-semibold mb-2">إجمالي الغرف</p>
+            <p class="text-4xl font-bold">
+              <span *ngIf="!isLoadingStats">{{ totalRooms }}</span>
+              <span *ngIf="isLoadingStats" class="animate-pulse">...</span>
+            </p>
           </div>
           <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
-            <span class="text-4xl">📚</span>
+            <span class="text-4xl">🏠</span>
           </div>
         </div>
       </div>
+
+      <!-- Available Rooms -->
+      <div class="bg-gradient-to-br from-green-500 to-emerald-500 rounded-3xl p-6 text-white shadow-xl card-hover transform hover:scale-105 transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-green-100 text-sm font-semibold mb-2">الغرف المتاحة</p>
+            <p class="text-4xl font-bold">
+              <span *ngIf="!isLoadingStats">{{ availableRooms }}</span>
+              <span *ngIf="isLoadingStats" class="animate-pulse">...</span>
+            </p>
+          </div>
+          <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
+            <span class="text-4xl">✅</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Occupied Rooms -->
       <div class="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl p-6 text-white shadow-xl card-hover transform hover:scale-105 transition-all duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-blue-100 text-sm font-semibold mb-2">التقارير</p>
-            <p class="text-4xl font-bold">0</p>
+            <p class="text-blue-100 text-sm font-semibold mb-2">الغرف المشغولة</p>
+            <p class="text-4xl font-bold">
+              <span *ngIf="!isLoadingStats">{{ occupiedRooms }}</span>
+              <span *ngIf="isLoadingStats" class="animate-pulse">...</span>
+            </p>
           </div>
           <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
-            <span class="text-4xl">📊</span>
+            <span class="text-4xl">🛏️</span>
           </div>
         </div>
       </div>
