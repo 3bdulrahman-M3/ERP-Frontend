@@ -19,6 +19,8 @@ export class RoomFormComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
+  buildings = ['A', 'B', 'C'];
+
   formData = {
     roomNumber: '',
     floor: null as number | null,

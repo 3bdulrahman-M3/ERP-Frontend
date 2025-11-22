@@ -99,14 +99,17 @@
         <label for="building" class="block text-sm font-bold text-gray-700 mb-2">
           المبنى
         </label>
-        <input
+        <select
           id="building"
-          type="text"
           [(ngModel)]="formData.building"
           name="building"
           class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-          placeholder="Building A"
-        />
+        >
+          <option [value]="''">-- اختر المبنى --</option>
+          <option *ngFor="let building of buildings" [value]="building">
+            مبنى {{ building }}
+          </option>
+        </select>
       </div>
 
       <!-- Room Price (for single rooms) -->

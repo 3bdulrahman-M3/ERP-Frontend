@@ -3,18 +3,60 @@
   <!-- Header -->
   <div class="flex justify-between items-center mb-8 animate-slide-down">
     <div>
-      <h2 class="text-4xl font-bold gradient-text mb-2">إدارة الكليات</h2>
-      <p class="text-gray-600">إدارة جميع الكليات في النظام</p>
+      <h2 class="text-4xl font-bold gradient-text mb-2">الكليات والطلاب</h2>
+      <p class="text-gray-600">عرض جميع الطلاب حسب الكلية والفرقة</p>
     </div>
     <button
-      (click)="openAddModal()"
+      (click)="openManageModal()"
       class="btn-primary px-6 py-3 text-white rounded-2xl font-bold shadow-xl flex items-center space-x-2 space-x-reverse transform hover:scale-105 transition-all duration-300"
     >
       <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
-      <span>إضافة كلية جديدة</span>
+      <span>إدارة الكليات</span>
     </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-2xl shadow-xl p-6 mb-6 animate-slide-up">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- College Filter -->
+      <div>
+        <label for="collegeId" class="block text-sm font-bold text-gray-700 mb-2">
+          الكلية
+        </label>
+        <select
+          id="collegeId"
+          [(ngModel)]="selectedCollegeId"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        >
+          <option [value]="null">-- جميع الكليات --</option>
+          <option *ngFor="let college of colleges" [value]="college.id">
+            {{ college.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Year Filter -->
+      <div>
+        <label for="year" class="block text-sm font-bold text-gray-700 mb-2">
+          الفرقة
+        </label>
+        <select
+          id="year"
+          [(ngModel)]="selectedYear"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        >
+          <option [value]="null">-- جميع الفرقة --</option>
+          <option *ngFor="let y of years" [value]="y">
+            الفرقة {{ y }}
+          </option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <!-- Error Message -->
@@ -23,55 +65,127 @@
   </div>
 
   <!-- Loading -->
-  <div *ngIf="isLoading && colleges.length === 0" class="flex justify-center items-center py-12">
+  <div *ngIf="isLoadingStudents" class="flex justify-center items-center py-12">
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
   </div>
 
-  <!-- Colleges Grid -->
-  <div *ngIf="!isLoading || colleges.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div
-      *ngFor="let college of colleges"
-      class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-200"
-    >
-      <div class="flex justify-between items-start mb-4">
-        <div class="flex-1">
-          <h3 class="text-xl font-bold text-gray-900 mb-2">{{ college.name }}</h3>
-          <p *ngIf="college.description" class="text-sm text-gray-600">{{ college.description }}</p>
-          <p *ngIf="!college.description" class="text-sm text-gray-400">لا يوجد وصف</p>
-        </div>
+  <!-- Students Table -->
+  <div *ngIf="!isLoadingStudents && students.length > 0" class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاسم</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">البريد الإلكتروني</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكلية</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الفرقة</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العمر</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم الهاتف</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let student of students" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ student.name }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ student.email }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.college?.name || 'غير محدد' }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.year ? 'الفرقة ' + student.year : 'غير محدد' }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.age }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.phoneNumber }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <button
+                (click)="router.navigate(['/dashboard/students', student.id])"
+                class="text-blue-600 hover:text-blue-900"
+                title="عرض"
+              >
+                👁️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          السابق
+        </button>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          التالي
+        </button>
       </div>
-      <div class="flex items-center justify-end space-x-2 space-x-reverse mt-4 pt-4 border-t border-gray-200">
-        <button
-          (click)="openEditModal(college)"
-          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition duration-200"
-        >
-          تعديل
-        </button>
-        <button
-          (click)="openDeleteModal(college)"
-          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition duration-200"
-        >
-          حذف
-        </button>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            عرض
+            <span class="font-medium">{{ (currentPage - 1) * limit + 1 }}</span>
+            إلى
+            <span class="font-medium">{{ Math.min(currentPage * limit, total) }}</span>
+            من
+            <span class="font-medium">{{ total }}</span>
+            طالب
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              (click)="goToPage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              السابق
+            </button>
+            <button
+              *ngFor="let page of getPageNumbers()"
+              (click)="goToPage(page)"
+              [class.bg-blue-50.border-blue-500.text-blue-600]="page === currentPage"
+              [class.bg-white.border-gray-300.text-gray-500.hover:bg-gray-50]="page !== currentPage"
+              class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+            >
+              {{ page }}
+            </button>
+            <button
+              (click)="goToPage(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              التالي
+            </button>
+          </nav>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="!isLoading && colleges.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
+  <div *ngIf="!isLoadingStudents && students.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
     </svg>
-    <h3 class="mt-2 text-sm font-medium text-gray-900">لا توجد كليات</h3>
-    <p class="mt-1 text-sm text-gray-500">ابدأ بإضافة كلية جديدة.</p>
-    <div class="mt-6">
-      <button
-        (click)="openAddModal()"
-        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-      >
-        إضافة كلية جديدة
-      </button>
-    </div>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">لا يوجد طلاب</h3>
+    <p class="mt-1 text-sm text-gray-500">لا يوجد طلاب يطابقون المعايير المحددة.</p>
   </div>
 
   <!-- Add Modal -->
@@ -206,6 +320,77 @@
         >
           {{ isLoading ? 'جاري الحذف...' : 'حذف' }}
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage Colleges Modal -->
+  <div
+    *ngIf="showManageModal"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in"
+    (click)="closeManageModal()"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto animate-scale-in"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-bold text-gray-800">إدارة الكليات</h3>
+        <button
+          (click)="closeManageModal()"
+          class="p-2 rounded-lg hover:bg-gray-100 transition duration-200"
+        >
+          <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Add College Button -->
+      <div class="mb-6">
+        <button
+          (click)="openAddModal()"
+          class="btn-primary px-6 py-3 text-white rounded-xl font-bold shadow-lg flex items-center space-x-2 space-x-reverse"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>إضافة كلية جديدة</span>
+        </button>
+      </div>
+
+      <!-- Colleges Grid -->
+      <div *ngIf="!isLoading && colleges.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div
+          *ngFor="let college of colleges"
+          class="bg-gray-50 rounded-xl p-4 border border-gray-200"
+        >
+          <div class="flex justify-between items-start mb-2">
+            <div class="flex-1">
+              <h4 class="text-lg font-bold text-gray-900">{{ college.name }}</h4>
+              <p *ngIf="college.description" class="text-sm text-gray-600 mt-1">{{ college.description }}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-end space-x-2 space-x-reverse mt-3">
+            <button
+              (click)="openEditModal(college)"
+              class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition duration-200"
+            >
+              تعديل
+            </button>
+            <button
+              (click)="openDeleteModal(college)"
+              class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition duration-200"
+            >
+              حذف
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && colleges.length === 0" class="text-center py-8">
+        <p class="text-gray-500">لا توجد كليات</p>
       </div>
     </div>
   </div>
