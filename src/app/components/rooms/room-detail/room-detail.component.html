@@ -137,6 +137,11 @@
           <div class="text-xs text-gray-500">
             <p>تاريخ الدخول: {{ roomStudent.checkInDate | date: 'yyyy-MM-dd' }}</p>
             <p *ngIf="roomStudent.checkOutDate">تاريخ الخروج: {{ roomStudent.checkOutDate | date: 'yyyy-MM-dd' }}</p>
+            <p class="mt-1">
+              <span class="px-2 py-1 rounded" [class.bg-green-100]="roomStudent.paid" [class.text-green-700]="roomStudent.paid" [class.bg-red-100]="!roomStudent.paid" [class.text-red-700]="!roomStudent.paid">
+                {{ roomStudent.paid ? '✓ تم الدفع' : '✗ لم يتم الدفع' }}
+              </span>
+            </p>
           </div>
         </div>
       </div>
@@ -166,6 +171,17 @@
             {{ student.name }} - {{ student.email }}
           </option>
         </select>
+      </div>
+
+      <div class="mb-6">
+        <label class="flex items-center space-x-2 space-x-reverse cursor-pointer">
+          <input
+            type="checkbox"
+            [(ngModel)]="selectedPaid"
+            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <span class="text-sm font-bold text-gray-700">تم الدفع</span>
+        </label>
       </div>
 
       <div class="flex gap-3">

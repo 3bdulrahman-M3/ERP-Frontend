@@ -42,6 +42,18 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
+    path: 'dashboard/students/by-college',
+    loadComponent: () => import('./components/students/students-by-college/students-by-college.component').then(m => m.StudentsByCollegeComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/colleges',
+    loadComponent: () => import('./components/colleges/colleges-list/colleges-list.component').then(m => m.CollegesListComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
     path: 'dashboard/rooms',
     loadComponent: () => import('./components/rooms/rooms-list/rooms-list.component').then(m => m.RoomsListComponent),
     canActivate: [authGuard, roleGuard],

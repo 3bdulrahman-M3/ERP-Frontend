@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { StudentService, CreateStudentRequest, UpdateStudentRequest } from '../../../services/student.service';
+import { CollegeService, College } from '../../../services/college.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 
 @Component({
@@ -23,24 +24,43 @@ export class StudentFormComponent implements OnInit {
     name: '',
     email: '',
     password: '',
-    college: '',
+    collegeId: null as number | null,
+    year: null as number | null,
     age: null as number | null,
     phoneNumber: ''
   };
 
+  colleges: College[] = [];
+  years = [1, 2, 3, 4, 5, 6];
+
   constructor(
     private studentService: StudentService,
+    private collegeService: CollegeService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
+    this.loadColleges();
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isEditMode = true;
       this.studentId = +id;
       this.loadStudent();
     }
+  }
+
+  loadColleges() {
+    this.collegeService.getAllColleges().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.colleges = response.data;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading colleges:', error);
+      }
+    });
   }
 
   loadStudent() {
@@ -56,7 +76,8 @@ export class StudentFormComponent implements OnInit {
             name: student.name,
             email: student.email,
             password: '',
-            college: student.college,
+            collegeId: student.collegeId || null,
+            year: student.year || null,
             age: student.age,
             phoneNumber: student.phoneNumber
           };
@@ -82,7 +103,8 @@ export class StudentFormComponent implements OnInit {
       const updateData: UpdateStudentRequest = {
         name: this.formData.name,
         email: this.formData.email,
-        college: this.formData.college,
+        collegeId: this.formData.collegeId || undefined,
+        year: this.formData.year || undefined,
         age: this.formData.age!,
         phoneNumber: this.formData.phoneNumber
       };
@@ -116,7 +138,8 @@ export class StudentFormComponent implements OnInit {
         name: this.formData.name,
         email: this.formData.email,
         password: this.formData.password,
-        college: this.formData.college,
+        collegeId: this.formData.collegeId || undefined,
+        year: this.formData.year || undefined,
         age: this.formData.age!,
         phoneNumber: this.formData.phoneNumber
       };
@@ -170,8 +193,8 @@ export class StudentFormComponent implements OnInit {
       return false;
     }
 
-    if (!this.formData.college.trim()) {
-      this.errorMessage = 'الرجاء إدخال الكلية';
+    if (!this.formData.collegeId) {
+      this.errorMessage = 'الرجاء اختيار الكلية';
       return false;
     }
 

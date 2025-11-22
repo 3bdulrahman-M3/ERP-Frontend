@@ -41,6 +41,24 @@
         />
       </div>
 
+      <!-- Room Type -->
+      <div>
+        <label for="roomType" class="block text-sm font-bold text-gray-700 mb-2">
+          نوع الغرفة <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="roomType"
+          [(ngModel)]="formData.roomType"
+          name="roomType"
+          required
+          (change)="onRoomTypeChange()"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        >
+          <option value="shared">جماعي</option>
+          <option value="single">فردي</option>
+        </select>
+      </div>
+
       <!-- Total Beds -->
       <div>
         <label for="totalBeds" class="block text-sm font-bold text-gray-700 mb-2">
@@ -52,10 +70,13 @@
           [(ngModel)]="formData.totalBeds"
           name="totalBeds"
           required
-          min="1"
+          [min]="1"
+          [attr.max]="formData.roomType === 'single' ? '1' : null"
+          [readonly]="formData.roomType === 'single'"
           class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           placeholder="4"
         />
+        <p *ngIf="formData.roomType === 'single'" class="text-xs text-gray-500 mt-1">الغرف الفردية تحتوي على سرير واحد فقط</p>
       </div>
 
       <!-- Floor -->
@@ -85,6 +106,42 @@
           name="building"
           class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           placeholder="Building A"
+        />
+      </div>
+
+      <!-- Room Price (for single rooms) -->
+      <div *ngIf="formData.roomType === 'single'">
+        <label for="roomPrice" class="block text-sm font-bold text-gray-700 mb-2">
+          سعر الغرفة <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="roomPrice"
+          type="number"
+          [(ngModel)]="formData.roomPrice"
+          name="roomPrice"
+          [required]="formData.roomType === 'single'"
+          min="0"
+          step="0.01"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="0.00"
+        />
+      </div>
+
+      <!-- Bed Price (for shared rooms) -->
+      <div *ngIf="formData.roomType === 'shared'">
+        <label for="bedPrice" class="block text-sm font-bold text-gray-700 mb-2">
+          سعر السرير <span class="text-red-500">*</span>
+        </label>
+        <input
+          id="bedPrice"
+          type="number"
+          [(ngModel)]="formData.bedPrice"
+          name="bedPrice"
+          [required]="formData.roomType === 'shared'"
+          min="0"
+          step="0.01"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="0.00"
         />
       </div>
 

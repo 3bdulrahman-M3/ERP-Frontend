@@ -24,6 +24,9 @@ export class RoomFormComponent implements OnInit {
     floor: null as number | null,
     building: '',
     totalBeds: null as number | null,
+    roomType: 'shared' as 'single' | 'shared',
+    roomPrice: null as number | null,
+    bedPrice: null as number | null,
     description: '',
     status: 'available' as 'available' | 'occupied' | 'maintenance' | 'reserved'
   };
@@ -57,6 +60,9 @@ export class RoomFormComponent implements OnInit {
             floor: room.floor,
             building: room.building || '',
             totalBeds: room.totalBeds,
+            roomType: room.roomType || 'shared',
+            roomPrice: room.roomPrice ? parseFloat(room.roomPrice.toString()) : null,
+            bedPrice: room.bedPrice ? parseFloat(room.bedPrice.toString()) : null,
             description: room.description || '',
             status: room.status
           };
@@ -84,6 +90,9 @@ export class RoomFormComponent implements OnInit {
         floor: this.formData.floor || undefined,
         building: this.formData.building || undefined,
         totalBeds: this.formData.totalBeds!,
+        roomType: this.formData.roomType,
+        roomPrice: this.formData.roomPrice || undefined,
+        bedPrice: this.formData.bedPrice || undefined,
         description: this.formData.description || undefined,
         status: this.formData.status
       };
@@ -109,6 +118,9 @@ export class RoomFormComponent implements OnInit {
         floor: this.formData.floor || undefined,
         building: this.formData.building || undefined,
         totalBeds: this.formData.totalBeds!,
+        roomType: this.formData.roomType,
+        roomPrice: this.formData.roomPrice || undefined,
+        bedPrice: this.formData.bedPrice || undefined,
         description: this.formData.description || undefined,
         status: this.formData.status
       };
@@ -131,6 +143,15 @@ export class RoomFormComponent implements OnInit {
     }
   }
 
+  onRoomTypeChange() {
+    if (this.formData.roomType === 'single') {
+      this.formData.totalBeds = 1;
+      this.formData.bedPrice = null;
+    } else {
+      this.formData.roomPrice = null;
+    }
+  }
+
   validateForm(): boolean {
     if (!this.formData.roomNumber.trim()) {
       this.errorMessage = 'الرجاء إدخال رقم الغرفة';
@@ -140,6 +161,22 @@ export class RoomFormComponent implements OnInit {
     if (!this.formData.totalBeds || this.formData.totalBeds < 1) {
       this.errorMessage = 'الرجاء إدخال عدد الأسرة (على الأقل 1)';
       return false;
+    }
+
+    if (this.formData.roomType === 'single') {
+      if (this.formData.totalBeds !== 1) {
+        this.errorMessage = 'الغرف الفردية يجب أن تحتوي على سرير واحد فقط';
+        return false;
+      }
+      if (!this.formData.roomPrice || this.formData.roomPrice <= 0) {
+        this.errorMessage = 'الرجاء إدخال سعر الغرفة';
+        return false;
+      }
+    } else {
+      if (!this.formData.bedPrice || this.formData.bedPrice <= 0) {
+        this.errorMessage = 'الرجاء إدخال سعر السرير';
+        return false;
+      }
     }
 
     return true;

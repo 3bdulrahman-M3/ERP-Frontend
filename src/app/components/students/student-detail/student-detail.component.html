@@ -49,7 +49,11 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">الكلية</label>
-          <p class="text-lg text-gray-900">{{ student.college }}</p>
+          <p class="text-lg text-gray-900">{{ student.college?.name || 'غير محدد' }}</p>
+        </div>
+        <div *ngIf="student.year">
+          <label class="block text-sm font-medium text-gray-500 mb-1">الفرقة</label>
+          <p class="text-lg text-gray-900">الفرقة {{ student.year }}</p>
         </div>
       </div>
 
@@ -85,6 +89,31 @@
       </div>
       <div class="flex justify-center">
         <img [src]="student.qrCode" alt="QR Code" class="w-64 h-64 border border-gray-300 rounded-lg p-4 bg-white">
+      </div>
+    </div>
+
+    <!-- Room Info -->
+    <div *ngIf="student.roomAssignments && student.roomAssignments.length > 0" class="mt-8 pt-8 border-t border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">معلومات الغرفة</h3>
+      <div *ngFor="let assignment of student.roomAssignments" class="bg-blue-50 rounded-lg p-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">رقم الغرفة</label>
+            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.roomNumber || 'غير محدد' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">المبنى</label>
+            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.building || 'غير محدد' }}</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الدخول</label>
+            <p class="text-lg text-gray-900">{{ assignment.checkInDate | date: 'yyyy-MM-dd' }}</p>
+          </div>
+          <div *ngIf="assignment.checkOutDate">
+            <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الخروج</label>
+            <p class="text-lg text-gray-900">{{ assignment.checkOutDate | date: 'yyyy-MM-dd' }}</p>
+          </div>
+        </div>
       </div>
     </div>
 

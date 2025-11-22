@@ -10,6 +10,7 @@ export interface RoomStudent {
   checkInDate: string;
   checkOutDate: string | null;
   isActive: boolean;
+  paid?: boolean;
   student?: {
     id: number;
     name: string;
@@ -40,6 +41,9 @@ export interface Room {
   totalBeds: number;
   availableBeds: number;
   status: 'available' | 'occupied' | 'maintenance' | 'reserved';
+  roomType?: 'single' | 'shared';
+  roomPrice?: number | string;
+  bedPrice?: number | string;
   description: string | null;
   occupiedBeds?: number;
   createdAt: string;
@@ -52,6 +56,9 @@ export interface CreateRoomRequest {
   floor?: number;
   building?: string;
   totalBeds: number;
+  roomType?: 'single' | 'shared';
+  roomPrice?: number;
+  bedPrice?: number;
   description?: string;
   status?: 'available' | 'occupied' | 'maintenance' | 'reserved';
 }
@@ -61,6 +68,9 @@ export interface UpdateRoomRequest {
   floor?: number;
   building?: string;
   totalBeds?: number;
+  roomType?: 'single' | 'shared';
+  roomPrice?: number;
+  bedPrice?: number;
   description?: string;
   status?: 'available' | 'occupied' | 'maintenance' | 'reserved';
 }
@@ -69,6 +79,7 @@ export interface AssignStudentRequest {
   roomId: number;
   studentId: number;
   checkInDate?: string;
+  paid?: boolean;
 }
 
 export interface CheckOutRequest {

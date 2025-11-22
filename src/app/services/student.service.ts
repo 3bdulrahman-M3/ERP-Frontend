@@ -7,13 +7,32 @@ export interface Student {
   id: number;
   name: string;
   email: string;
-  college: string;
+  collegeId?: number;
+  year?: number;
   age: number;
   phoneNumber: string;
   qrCode: string;
   userId: number;
   createdAt: string;
   updatedAt: string;
+  college?: {
+    id: number;
+    name: string;
+  };
+  roomAssignments?: Array<{
+    id: number;
+    roomId: number;
+    studentId: number;
+    checkInDate: string;
+    checkOutDate?: string;
+    isActive: boolean;
+    paid?: boolean;
+    room?: {
+      id: number;
+      roomNumber: string;
+      building?: string;
+    };
+  }>;
   user?: {
     id: number;
     name: string;
@@ -27,7 +46,8 @@ export interface CreateStudentRequest {
   name: string;
   email: string;
   password: string;
-  college: string;
+  collegeId?: number;
+  year?: number;
   age: number;
   phoneNumber: string;
 }
@@ -36,7 +56,8 @@ export interface UpdateStudentRequest {
   name?: string;
   email?: string;
   password?: string;
-  college?: string;
+  collegeId?: number;
+  year?: number;
   age?: number;
   phoneNumber?: string;
 }
@@ -78,10 +99,14 @@ export class StudentService {
     return this.http.post<StudentResponse>(this.apiUrl, student);
   }
 
-  getAllStudents(page: number = 1, limit: number = 10): Observable<StudentsResponse> {
-    const params = new HttpParams()
+  getAllStudents(page: number = 1, limit: number = 10, excludeAssigned: boolean = false): Observable<StudentsResponse> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('limit', limit.toString());
+    
+    if (excludeAssigned) {
+      params = params.set('excludeAssigned', 'true');
+    }
     
     return this.http.get<StudentsResponse>(this.apiUrl, { params });
   }
@@ -96,6 +121,21 @@ export class StudentService {
 
   deleteStudent(id: number): Observable<DeleteResponse> {
     return this.http.delete<DeleteResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  getStudentsByCollegeAndYear(collegeId?: number, year?: number, page: number = 1, limit: number = 10): Observable<StudentsResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    
+    if (collegeId) {
+      params = params.set('collegeId', collegeId.toString());
+    }
+    if (year) {
+      params = params.set('year', year.toString());
+    }
+    
+    return this.http.get<StudentsResponse>(`${this.apiUrl}/filter`, { params });
   }
 }
 

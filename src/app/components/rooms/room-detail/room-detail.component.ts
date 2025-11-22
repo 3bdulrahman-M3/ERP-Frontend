@@ -20,6 +20,7 @@ export class RoomDetailComponent implements OnInit {
   errorMessage = '';
   showAssignModal = false;
   selectedStudentId: number | null = null;
+  selectedPaid: boolean = false;
   availableStudents: any[] = [];
 
   constructor(
@@ -97,10 +98,11 @@ export class RoomDetailComponent implements OnInit {
   closeAssignModal() {
     this.showAssignModal = false;
     this.selectedStudentId = null;
+    this.selectedPaid = false;
   }
 
   loadAvailableStudents() {
-    this.studentService.getAllStudents(1, 100).subscribe({
+    this.studentService.getAllStudents(1, 100, true).subscribe({
       next: (response) => {
         if (response.success) {
           this.availableStudents = response.data.students;
@@ -120,7 +122,8 @@ export class RoomDetailComponent implements OnInit {
 
     this.roomService.assignStudent({
       roomId: this.room.id,
-      studentId: this.selectedStudentId
+      studentId: this.selectedStudentId,
+      paid: this.selectedPaid
     }).subscribe({
       next: (response) => {
         if (response.success) {

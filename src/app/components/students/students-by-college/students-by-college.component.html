@@ -1,0 +1,179 @@
+<app-layout pageTitle="الطلاب حسب الكلية والفرقة">
+<div class="p-6 animate-fade-in">
+  <!-- Header -->
+  <div class="mb-8 animate-slide-down">
+    <h2 class="text-4xl font-bold gradient-text mb-2">الطلاب حسب الكلية والفرقة</h2>
+    <p class="text-gray-600">عرض الطلاب حسب الكلية أو الفرقة</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-2xl shadow-xl p-6 mb-6 animate-slide-up">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- College Filter -->
+      <div>
+        <label for="collegeId" class="block text-sm font-bold text-gray-700 mb-2">
+          الكلية
+        </label>
+        <select
+          id="collegeId"
+          [(ngModel)]="selectedCollegeId"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        >
+          <option [value]="null">-- جميع الكليات --</option>
+          <option *ngFor="let college of colleges" [value]="college.id">
+            {{ college.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Year Filter -->
+      <div>
+        <label for="year" class="block text-sm font-bold text-gray-700 mb-2">
+          الفرقة
+        </label>
+        <select
+          id="year"
+          [(ngModel)]="selectedYear"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+        >
+          <option [value]="null">-- جميع الفرقة --</option>
+          <option *ngFor="let y of years" [value]="y">
+            الفرقة {{ y }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <p class="text-sm text-red-600">{{ errorMessage }}</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+
+  <!-- Students Table -->
+  <div *ngIf="!isLoading && students.length > 0" class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الاسم</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">البريد الإلكتروني</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الكلية</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الفرقة</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العمر</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم الهاتف</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let student of students" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ student.name }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-500">{{ student.email }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.college?.name || 'غير محدد' }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.year ? 'الفرقة ' + student.year : 'غير محدد' }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.age }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ student.phoneNumber }}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          السابق
+        </button>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          التالي
+        </button>
+      </div>
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            عرض
+            <span class="font-medium">{{ (currentPage - 1) * limit + 1 }}</span>
+            إلى
+            <span class="font-medium">{{ Math.min(currentPage * limit, total) }}</span>
+            من
+            <span class="font-medium">{{ total }}</span>
+            طالب
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            <button
+              (click)="goToPage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              السابق
+            </button>
+            <button
+              *ngFor="let page of getPageNumbers()"
+              (click)="goToPage(page)"
+              [class.bg-blue-50.border-blue-500.text-blue-600]="page === currentPage"
+              [class.bg-white.border-gray-300.text-gray-500.hover:bg-gray-50]="page !== currentPage"
+              class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+            >
+              {{ page }}
+            </button>
+            <button
+              (click)="goToPage(currentPage + 1)"
+              [disabled]="currentPage === totalPages"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              التالي
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && students.length === 0 && (selectedCollegeId || selectedYear)" class="bg-white rounded-lg shadow-sm p-12 text-center">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">لا يوجد طلاب</h3>
+    <p class="mt-1 text-sm text-gray-500">لا يوجد طلاب يطابقون المعايير المحددة.</p>
+  </div>
+
+  <!-- Initial State -->
+  <div *ngIf="!isLoading && students.length === 0 && !selectedCollegeId && !selectedYear" class="bg-white rounded-lg shadow-sm p-12 text-center">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">اختر الكلية أو الفرقة</h3>
+    <p class="mt-1 text-sm text-gray-500">يرجى اختيار الكلية أو الفرقة لعرض الطلاب.</p>
+  </div>
+</div>
+</app-layout>
+
