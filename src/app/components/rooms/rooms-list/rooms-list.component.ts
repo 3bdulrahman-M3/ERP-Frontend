@@ -25,6 +25,7 @@ export class RoomsListComponent implements OnInit {
   statusFilter = '';
   buildingFilter = '';
   floorFilter: number | null = null;
+  buildings = ['A', 'B', 'C'];
 
   constructor(
     private roomService: RoomService,
@@ -66,6 +67,11 @@ export class RoomsListComponent implements OnInit {
       this.currentPage = page;
       this.loadRooms();
     }
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 1;
+    this.loadRooms();
   }
 
   editRoom(id: number) {

@@ -69,11 +69,13 @@ export class CollegesListComponent implements OnInit {
   openAddModal() {
     this.formData = { name: '', description: '' };
     this.showAddModal = true;
+    this.showManageModal = false; // Close manage modal when opening add modal
   }
 
   closeAddModal() {
     this.showAddModal = false;
     this.formData = { name: '', description: '' };
+    this.showManageModal = true; // Reopen manage modal after closing add modal
   }
 
   openEditModal(college: College) {
@@ -83,22 +85,26 @@ export class CollegesListComponent implements OnInit {
       description: college.description || ''
     };
     this.showEditModal = true;
+    this.showManageModal = false; // Close manage modal when opening edit modal
   }
 
   closeEditModal() {
     this.showEditModal = false;
     this.selectedCollege = null;
     this.formData = { name: '', description: '' };
+    this.showManageModal = true; // Reopen manage modal after closing edit modal
   }
 
   openDeleteModal(college: College) {
     this.selectedCollege = college;
     this.showDeleteModal = true;
+    this.showManageModal = false; // Close manage modal when opening delete modal
   }
 
   closeDeleteModal() {
     this.showDeleteModal = false;
     this.selectedCollege = null;
+    this.showManageModal = true; // Reopen manage modal after closing delete modal
   }
 
   addCollege() {
@@ -114,6 +120,7 @@ export class CollegesListComponent implements OnInit {
         if (response.success) {
           this.closeAddModal();
           this.loadColleges();
+          this.loadStudents(); // Reload students to reflect changes
         }
       },
       error: (error) => {
@@ -136,6 +143,7 @@ export class CollegesListComponent implements OnInit {
         if (response.success) {
           this.closeEditModal();
           this.loadColleges();
+          this.loadStudents(); // Reload students to reflect changes
         }
       },
       error: (error) => {
@@ -155,6 +163,7 @@ export class CollegesListComponent implements OnInit {
         if (response.success) {
           this.closeDeleteModal();
           this.loadColleges();
+          this.loadStudents(); // Reload students to reflect changes
         }
       },
       error: (error) => {
@@ -165,6 +174,11 @@ export class CollegesListComponent implements OnInit {
   }
 
   onFilterChange() {
+    this.currentPage = 1;
+    this.loadStudents();
+  }
+
+  onPageSizeChange() {
     this.currentPage = 1;
     this.loadStudents();
   }

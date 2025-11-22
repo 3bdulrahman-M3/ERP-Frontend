@@ -47,7 +47,11 @@
           </div>
           <div *ngIf="room.building">
             <label class="block text-sm font-bold text-gray-500 mb-1">المبنى</label>
-            <p class="text-xl text-gray-900">{{ room.building }}</p>
+            <p class="text-xl text-gray-900">مبنى {{ room.building }}</p>
+          </div>
+          <div *ngIf="!room.building">
+            <label class="block text-sm font-bold text-gray-500 mb-1">المبنى</label>
+            <p class="text-xl text-gray-400">غير محدد</p>
           </div>
           <div *ngIf="room.floor">
             <label class="block text-sm font-bold text-gray-500 mb-1">الطابق</label>

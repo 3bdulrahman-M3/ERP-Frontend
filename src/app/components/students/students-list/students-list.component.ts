@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StudentService, Student } from '../../../services/student.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
@@ -7,7 +8,7 @@ import { LayoutComponent } from '../../shared/layout/layout.component';
 @Component({
   selector: 'app-students-list',
   standalone: true,
-  imports: [CommonModule, LayoutComponent],
+  imports: [CommonModule, FormsModule, LayoutComponent],
   templateUrl: './students-list.component.html',
   styleUrl: './students-list.component.css'
 })
@@ -55,6 +56,11 @@ export class StudentsListComponent implements OnInit {
       this.currentPage = page;
       this.loadStudents();
     }
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 1;
+    this.loadStudents();
   }
 
   editStudent(id: number) {
