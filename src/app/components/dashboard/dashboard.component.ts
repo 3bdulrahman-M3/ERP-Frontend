@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, interval, Subscription } from 'rxjs';
 import { AuthService, User } from '../../services/auth.service';
 import { StudentService } from '../../services/student.service';
 import { RoomService } from '../../services/room.service';
+import { MealService, KitchenStatus } from '../../services/meal.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
+import { formatTime12Hour, getCurrentTime12HourShort } from '../../utils/time.util';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,7 +16,7 @@ import { LayoutComponent } from '../shared/layout/layout.component';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   currentPageTitle = 'لوحة التحكم';
   isSidebarOpen = true;
@@ -26,6 +28,20 @@ export class DashboardComponent implements OnInit {
   availableRooms = 0;
   occupiedRooms = 0;
   isLoadingStats = false;
+
+  // Kitchen data for students (brief)
+  kitchenStatus: KitchenStatus | null = null;
+  currentTime = '';
+  nextMealTime = '';
+  isLoadingKitchen = false;
+  private timeSubscription?: Subscription;
+  private kitchenUpdateSubscription?: Subscription;
+  
+  mealNames: { [key: string]: string } = {
+    breakfast: 'الإفطار',
+    lunch: 'الغداء',
+    dinner: 'العشاء'
+  };
 
 
   menuItems = [
@@ -41,6 +57,7 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private studentService: StudentService,
     private roomService: RoomService,
+    private mealService: MealService,
     public router: Router,
     private route: ActivatedRoute
   ) {}
@@ -55,6 +72,12 @@ export class DashboardComponent implements OnInit {
       this.loadStatistics();
     }
     
+    // Load kitchen data if student
+    if (this.currentUser?.role === 'student') {
+      this.loadKitchenData();
+      this.startTimeUpdate();
+    }
+    
     // Update title when route changes
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -62,6 +85,15 @@ export class DashboardComponent implements OnInit {
       this.currentRoute = this.router.url;
       this.updatePageTitle();
     });
+  }
+
+  ngOnDestroy() {
+    if (this.timeSubscription) {
+      this.timeSubscription.unsubscribe();
+    }
+    if (this.kitchenUpdateSubscription) {
+      this.kitchenUpdateSubscription.unsubscribe();
+    }
   }
 
   loadStatistics() {
@@ -181,6 +213,52 @@ export class DashboardComponent implements OnInit {
   navigateTo(route: string) {
     this.router.navigate([route]);
     setTimeout(() => this.updatePageTitle(), 100);
+  }
+
+  loadKitchenData() {
+    this.isLoadingKitchen = true;
+    
+    this.mealService.getKitchenStatus().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.kitchenStatus = response.data;
+          this.updateNextMealTime();
+        }
+        this.isLoadingKitchen = false;
+      },
+      error: (error) => {
+        console.error('Error loading kitchen status:', error);
+        this.isLoadingKitchen = false;
+      }
+    });
+  }
+
+  startTimeUpdate() {
+    // Update current time every second
+    this.updateCurrentTime();
+    this.timeSubscription = interval(1000).subscribe(() => {
+      this.updateCurrentTime();
+    });
+
+    // Refresh kitchen status every 30 seconds
+    this.kitchenUpdateSubscription = interval(30000).subscribe(() => {
+      this.loadKitchenData();
+    });
+  }
+
+  updateCurrentTime() {
+    this.currentTime = getCurrentTime12HourShort();
+  }
+
+  updateNextMealTime() {
+    if (this.kitchenStatus?.nextMeal) {
+      this.nextMealTime = formatTime12Hour(this.kitchenStatus.nextMeal.startTime);
+    } else if (this.kitchenStatus?.currentMeal) {
+      // If kitchen is open, show when it closes
+      this.nextMealTime = formatTime12Hour(this.kitchenStatus.currentMeal.endTime);
+    } else {
+      this.nextMealTime = '';
+    }
   }
 }
 

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MealService, Meal } from '../../../services/meal.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { formatTime12Hour } from '../../../utils/time.util';
 
 @Component({
   selector: 'app-meals-list',
@@ -181,7 +182,7 @@ export class MealsListComponent implements OnInit {
   }
 
   formatTime(time: string): string {
-    return time.substring(0, 5); // Extract HH:mm from HH:mm:ss
+    return formatTime12Hour(time);
   }
 }
 

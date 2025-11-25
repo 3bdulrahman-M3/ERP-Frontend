@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MealService, Meal, KitchenStatus } from '../../services/meal.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
 import { interval, Subscription } from 'rxjs';
+import { formatTime12Hour } from '../../utils/time.util';
 
 @Component({
   selector: 'app-kitchen',
@@ -133,12 +134,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
   }
 
   formatTime(time: string): string {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const min = parseInt(minutes);
-    const period = hour >= 12 ? 'م' : 'ص';
-    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
-    return `${displayHour}:${min.toString().padStart(2, '0')} ${period}`;
+    return formatTime12Hour(time);
   }
 }
 

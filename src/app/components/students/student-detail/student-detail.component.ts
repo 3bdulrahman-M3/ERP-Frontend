@@ -5,6 +5,7 @@ import { StudentService, Student } from '../../../services/student.service';
 import { MealService, KitchenStatus } from '../../../services/meal.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { interval, Subscription } from 'rxjs';
+import { formatTime12Hour, getCurrentTime12HourShort, formatDateTime12Hour } from '../../../utils/time.util';
 
 @Component({
   selector: 'app-student-detail',
@@ -65,11 +66,7 @@ export class StudentDetailComponent implements OnInit, OnDestroy {
   }
 
   updateCurrentTime() {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    this.currentTime = `${hours}:${minutes}:${seconds}`;
+    this.currentTime = getCurrentTime12HourShort();
     
     // Update countdown if kitchen is closed
     if (this.kitchenStatus && !this.kitchenStatus.isOpen && this.kitchenStatus.timeUntilNextMeal) {
@@ -184,7 +181,11 @@ export class StudentDetailComponent implements OnInit, OnDestroy {
   }
 
   formatTime(time: string): string {
-    return time.substring(0, 5); // Extract HH:mm from HH:mm:ss
+    return formatTime12Hour(time);
+  }
+
+  formatDateTime(date: string | Date): string {
+    return formatDateTime12Hour(date);
   }
 }
 

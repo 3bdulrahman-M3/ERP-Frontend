@@ -68,7 +68,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الإنشاء</label>
-          <p class="text-lg text-gray-900">{{ student.createdAt | date: 'yyyy-MM-dd HH:mm' }}</p>
+          <p class="text-lg text-gray-900">{{ formatDateTime(student.createdAt) }}</p>
         </div>
       </div>
     </div>
