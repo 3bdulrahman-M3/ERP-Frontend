@@ -1,0 +1,4 @@
+/* Meals List Component Styles */
+:host {
+  display: block;
+}

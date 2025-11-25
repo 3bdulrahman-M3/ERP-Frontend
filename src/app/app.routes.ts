@@ -54,6 +54,12 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
+    path: 'dashboard/meals',
+    loadComponent: () => import('./components/meals/meals-list/meals-list.component').then(m => m.MealsListComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
     path: 'dashboard/rooms',
     loadComponent: () => import('./components/rooms/rooms-list/rooms-list.component').then(m => m.RoomsListComponent),
     canActivate: [authGuard, roleGuard],
