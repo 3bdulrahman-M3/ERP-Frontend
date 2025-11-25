@@ -1,7 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, Subscription } from 'rxjs';
 import { AuthService, User } from '../../../services/auth.service';
 
 @Component({
@@ -11,26 +11,46 @@ import { AuthService, User } from '../../../services/auth.service';
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })
-export class LayoutComponent implements OnInit {
+export class LayoutComponent implements OnInit, OnDestroy {
   @Input() pageTitle = 'لوحة التحكم';
   
   currentUser: User | null = null;
   isSidebarOpen = true;
+  private userSubscription?: Subscription;
 
-  menuItems: Array<{ icon: string; label: string; route: string; active: boolean; adminOnly?: boolean }> = [];
+  menuItems: Array<{ icon: string; label: string; route: string; active: boolean; adminOnly?: boolean; studentOnly?: boolean }> = [];
 
   getMenuItems() {
-    const isAdmin = this.currentUser?.role === 'admin';
+    if (!this.currentUser) {
+      return [];
+    }
     
-    return [
-      { icon: '📊', label: 'لوحة التحكم', route: '/dashboard', active: false, adminOnly: false },
-      { icon: '🎓', label: 'الطلاب', route: '/dashboard/students', active: false, adminOnly: true },
-      { icon: '🏠', label: 'الغرف', route: '/dashboard/rooms', active: false, adminOnly: true },
-      { icon: '🏛️', label: 'الكليات', route: '/dashboard/colleges', active: false, adminOnly: true },
-      { icon: '🍽️', label: 'الوجبات', route: '/dashboard/meals', active: false, adminOnly: true },
-      { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false, adminOnly: true },
-      { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false, adminOnly: false },
-    ].filter(item => !item.adminOnly || isAdmin);
+    const isAdmin = this.currentUser.role === 'admin';
+    const isStudent = this.currentUser.role === 'student';
+    
+    const allItems = [
+      { icon: '📊', label: 'لوحة التحكم', route: '/dashboard', active: false, adminOnly: false, studentOnly: false },
+      { icon: '🎓', label: 'الطلاب', route: '/dashboard/students', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏠', label: 'الغرف', route: '/dashboard/rooms', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏛️', label: 'الكليات', route: '/dashboard/colleges', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🍽️', label: 'الوجبات', route: '/dashboard/meals', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🍴', label: 'المطعم', route: '/dashboard/kitchen', active: false, adminOnly: false, studentOnly: true },
+      { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false },
+      { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
+    ];
+    
+    return allItems.filter(item => {
+      // If item is admin only, show only to admins
+      if (item.adminOnly) {
+        return isAdmin;
+      }
+      // If item is student only, show only to students
+      if (item.studentOnly) {
+        return isStudent;
+      }
+      // If item is not restricted, show to everyone
+      return true;
+    });
   }
 
   constructor(
@@ -43,12 +63,25 @@ export class LayoutComponent implements OnInit {
     this.menuItems = this.getMenuItems();
     this.updateActiveMenu();
     
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
+    // Subscribe to user changes
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
       this.menuItems = this.getMenuItems();
       this.updateActiveMenu();
     });
+    
+    // Update menu on route changes
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.updateActiveMenu();
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
 
   updateActiveMenu() {

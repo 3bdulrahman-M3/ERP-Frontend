@@ -1,0 +1,112 @@
+<app-layout pageTitle="المطعم">
+  <div class="p-6 animate-fade-in">
+    <div class="space-y-6">
+      <!-- Kitchen Status Card -->
+      <div class="bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 rounded-3xl p-8 text-white shadow-2xl card-hover relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/10"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-3xl font-bold flex items-center">
+              <span class="mr-3 text-4xl">🍽️</span>
+              حالة المطبخ
+            </h3>
+            <div class="bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-3">
+              <span *ngIf="isLoadingKitchen" class="text-xl font-bold animate-pulse">جاري التحميل...</span>
+              <span *ngIf="!isLoadingKitchen && kitchenStatus?.isOpen" class="text-xl font-bold flex items-center">
+                <span class="ml-2 text-2xl">✅</span>
+                مفتوح
+              </span>
+              <span *ngIf="!isLoadingKitchen && !kitchenStatus?.isOpen" class="text-xl font-bold flex items-center">
+                <span class="ml-2 text-2xl">❌</span>
+                مغلق
+              </span>
+            </div>
+          </div>
+          
+          <ng-container *ngIf="kitchenStatus?.currentMeal as currentMeal">
+            <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4">
+              <p class="text-lg mb-2">الوجبة الحالية:</p>
+              <p class="text-2xl font-bold">{{ mealNames[currentMeal.name] }}</p>
+              <p class="text-sm mt-2 opacity-90">
+                من {{ formatTime(currentMeal.startTime) }} إلى {{ formatTime(currentMeal.endTime) }}
+              </p>
+            </div>
+          </ng-container>
+
+          <!-- Countdown Timer -->
+          <ng-container *ngIf="countdownTimer as timer">
+            <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center">
+              <p class="text-lg mb-4" *ngIf="kitchenStatus?.isOpen">الوقت المتبقي حتى إغلاق المطبخ:</p>
+              <ng-container *ngIf="!kitchenStatus?.isOpen && kitchenStatus?.nextMeal as nextMeal">
+                <p class="text-lg mb-4">الوقت المتبقي حتى الوجبة القادمة ({{ mealNames[nextMeal.name] }}):</p>
+              </ng-container>
+              <div class="flex items-center justify-center gap-4">
+                <div class="bg-white/30 rounded-xl p-4 min-w-[80px]">
+                  <p class="text-4xl font-bold">{{ timer.hours.toString().padStart(2, '0') }}</p>
+                  <p class="text-sm mt-1">ساعة</p>
+                </div>
+                <span class="text-3xl font-bold">:</span>
+                <div class="bg-white/30 rounded-xl p-4 min-w-[80px]">
+                  <p class="text-4xl font-bold">{{ timer.minutes.toString().padStart(2, '0') }}</p>
+                  <p class="text-sm mt-1">دقيقة</p>
+                </div>
+                <span class="text-3xl font-bold">:</span>
+                <div class="bg-white/30 rounded-xl p-4 min-w-[80px]">
+                  <p class="text-4xl font-bold">{{ timer.seconds.toString().padStart(2, '0') }}</p>
+                  <p class="text-sm mt-1">ثانية</p>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+      </div>
+
+      <!-- Meals Schedule Card -->
+      <div class="bg-gradient-to-br from-white to-orange-50 rounded-3xl shadow-xl p-6 card-hover">
+        <h3 class="text-2xl font-bold gradient-text mb-6 flex items-center">
+          <span class="mr-3 text-3xl">📅</span>
+          مواعيد الوجبات
+        </h3>
+        
+        <div *ngIf="isLoadingKitchen" class="text-center py-8">
+          <p class="text-gray-500 animate-pulse">جاري تحميل مواعيد الوجبات...</p>
+        </div>
+
+        <div *ngIf="!isLoadingKitchen && allMeals.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div *ngFor="let meal of allMeals" 
+               class="bg-white rounded-2xl p-5 border-2 transition-all duration-300"
+               [class.border-orange-400]="kitchenStatus?.currentMeal?.id === meal.id"
+               [class.border-gray-200]="kitchenStatus?.currentMeal?.id !== meal.id"
+               [class.shadow-lg]="kitchenStatus?.currentMeal?.id === meal.id"
+               [class.shadow]="kitchenStatus?.currentMeal?.id !== meal.id">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xl font-bold text-gray-800">{{ mealNames[meal.name] }}</h4>
+              <span *ngIf="kitchenStatus?.currentMeal?.id === meal.id" 
+                    class="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                الآن
+              </span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center text-gray-600">
+                <span class="ml-2">🕐</span>
+                <span class="font-semibold">من:</span>
+                <span class="mr-2 font-bold text-gray-800">{{ formatTime(meal.startTime) }}</span>
+              </div>
+              <div class="flex items-center text-gray-600">
+                <span class="ml-2">🕐</span>
+                <span class="font-semibold">إلى:</span>
+                <span class="mr-2 font-bold text-gray-800">{{ formatTime(meal.endTime) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoadingKitchen && allMeals.length === 0" class="text-center py-8">
+          <p class="text-gray-500">لا توجد وجبات متاحة حالياً</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-layout>
+

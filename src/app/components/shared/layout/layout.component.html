@@ -22,6 +22,9 @@
 
       <!-- Sidebar Menu - Scrollable -->
       <div class="flex-1 overflow-y-auto p-4 space-y-3" *ngIf="isSidebarOpen">
+        <div *ngIf="menuItems.length === 0" class="text-white/60 text-center p-4">
+          <p>لا توجد عناصر في القائمة</p>
+        </div>
         <div *ngFor="let item of menuItems; let i = index" (click)="navigateTo(item.route)" [style.animation-delay.ms]="i * 100">
           <div
             [class]="item.active ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-r-4 border-cyan-400' : 'text-white/80 hover:bg-white/20 hover:text-white'"

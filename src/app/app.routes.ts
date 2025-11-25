@@ -84,6 +84,12 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
+    path: 'dashboard/kitchen',
+    loadComponent: () => import('./components/kitchen/kitchen.component').then(m => m.KitchenComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'student' }
+  },
+  {
     path: 'unauthorized',
     loadComponent: () => import('./components/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   }

@@ -24,6 +24,8 @@ export interface KitchenStatus {
     totalMinutes: number;
   } | null;
   currentTime: string;
+  allMeals?: Meal[];
+  currentDateTime?: any;
 }
 
 export interface MealsResponse {

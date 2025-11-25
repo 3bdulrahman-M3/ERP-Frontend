@@ -27,6 +27,7 @@ export class DashboardComponent implements OnInit {
   occupiedRooms = 0;
   isLoadingStats = false;
 
+
   menuItems = [
     { icon: '📊', label: 'لوحة التحكم', route: '/dashboard', active: true },
     { icon: '🎓', label: 'الطلاب', route: '/dashboard/students', active: false },
