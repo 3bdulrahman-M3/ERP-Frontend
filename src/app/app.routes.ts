@@ -90,6 +90,36 @@ export const routes: Routes = [
     data: { role: 'student' }
   },
   {
+    path: 'dashboard/student-check-in-out',
+    loadComponent: () => import('./components/student-check-in-out/student-check-in-out.component').then(m => m.StudentCheckInOutComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'student' }
+  },
+  {
+    path: 'dashboard/check-in-out',
+    loadComponent: () => import('./components/check-in-out/check-in-out.component').then(m => m.CheckInOutComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/reports/check-in-out',
+    loadComponent: () => import('./components/reports/check-in-out-report/check-in-out-report.component').then(m => m.CheckInOutReportComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/reports/student-record',
+    loadComponent: () => import('./components/reports/student-record/student-record.component').then(m => m.StudentRecordComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/services',
+    loadComponent: () => import('./components/services/services-list/services-list.component').then(m => m.ServicesListComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
     path: 'unauthorized',
     loadComponent: () => import('./components/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   }

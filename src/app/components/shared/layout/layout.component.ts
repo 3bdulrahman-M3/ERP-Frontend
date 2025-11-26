@@ -18,7 +18,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
   isSidebarOpen = true;
   private userSubscription?: Subscription;
 
-  menuItems: Array<{ icon: string; label: string; route: string; active: boolean; adminOnly?: boolean; studentOnly?: boolean }> = [];
+  menuItems: Array<{ icon: string; label: string; route: string; active: boolean; adminOnly?: boolean; studentOnly?: boolean; hasSubmenu?: boolean; parentRoute?: string }> = [];
+  submenuItems: Array<{ icon: string; label: string; route: string; active: boolean; parentRoute: string }> = [];
+  expandedMenus: Set<string> = new Set();
 
   getMenuItems() {
     if (!this.currentUser) {
@@ -34,23 +36,48 @@ export class LayoutComponent implements OnInit, OnDestroy {
       { icon: '🏠', label: 'الغرف', route: '/dashboard/rooms', active: false, adminOnly: true, studentOnly: false },
       { icon: '🏛️', label: 'الكليات', route: '/dashboard/colleges', active: false, adminOnly: true, studentOnly: false },
       { icon: '🍽️', label: 'الوجبات', route: '/dashboard/meals', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🔧', label: 'الخدمات', route: '/dashboard/services', active: false, adminOnly: true, studentOnly: false },
       { icon: '🍴', label: 'المطعم', route: '/dashboard/kitchen', active: false, adminOnly: false, studentOnly: true },
-      { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false },
+      { icon: '📋', label: 'سجل الدخول والخروج', route: '/dashboard/student-check-in-out', active: false, adminOnly: false, studentOnly: true },
+      { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false, hasSubmenu: true },
+      { icon: '📷', label: 'تسجيل الدخول/الخروج', route: '/dashboard/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '📊', label: 'سجل الدخول والخروج', route: '/dashboard/reports/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '👤', label: 'سجل الطالب', route: '/dashboard/reports/student-record', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
       { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
     ];
     
-    return allItems.filter(item => {
-      // If item is admin only, show only to admins
+    const mainItems: typeof allItems = [];
+    const subItems: typeof allItems = [];
+    
+    allItems.forEach(item => {
+      // Filter by role
+      let shouldShow = false;
       if (item.adminOnly) {
-        return isAdmin;
+        shouldShow = isAdmin;
+      } else if (item.studentOnly) {
+        shouldShow = isStudent;
+      } else {
+        shouldShow = true;
       }
-      // If item is student only, show only to students
-      if (item.studentOnly) {
-        return isStudent;
+      
+      if (shouldShow) {
+        if (item.parentRoute) {
+          subItems.push(item);
+        } else {
+          mainItems.push(item);
+        }
       }
-      // If item is not restricted, show to everyone
-      return true;
     });
+    
+    this.submenuItems = subItems.map(item => ({
+      icon: item.icon,
+      label: item.label,
+      route: item.route,
+      active: false,
+      parentRoute: item.parentRoute!
+    }));
+    
+    return mainItems;
   }
 
   constructor(
@@ -89,7 +116,38 @@ export class LayoutComponent implements OnInit, OnDestroy {
     this.menuItems.forEach(item => {
       item.active = currentRoute === item.route || 
                    (item.route !== '/dashboard' && currentRoute.startsWith(item.route));
+      
+      // Check if any submenu item is active
+      if (item.hasSubmenu) {
+        const hasActiveSubmenu = this.submenuItems.some(subItem => 
+          subItem.parentRoute === item.route && 
+          (currentRoute === subItem.route || currentRoute.startsWith(subItem.route))
+        );
+        if (hasActiveSubmenu) {
+          this.expandedMenus.add(item.route);
+        }
+      }
     });
+    
+    this.submenuItems.forEach(item => {
+      item.active = currentRoute === item.route || currentRoute.startsWith(item.route);
+    });
+  }
+
+  toggleSubmenu(route: string) {
+    if (this.expandedMenus.has(route)) {
+      this.expandedMenus.delete(route);
+    } else {
+      this.expandedMenus.add(route);
+    }
+  }
+
+  isSubmenuExpanded(route: string): boolean {
+    return this.expandedMenus.has(route);
+  }
+
+  getSubmenuItems(parentRoute: string) {
+    return this.submenuItems.filter(item => item.parentRoute === parentRoute);
   }
 
   toggleSidebar() {

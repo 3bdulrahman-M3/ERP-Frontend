@@ -6,8 +6,11 @@ import { AuthService, User } from '../../services/auth.service';
 import { StudentService } from '../../services/student.service';
 import { RoomService } from '../../services/room.service';
 import { MealService, KitchenStatus } from '../../services/meal.service';
+import { CheckInOutService } from '../../services/check-in-out.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
 import { formatTime12Hour, getCurrentTime12HourShort } from '../../utils/time.util';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -34,8 +37,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   currentTime = '';
   nextMealTime = '';
   isLoadingKitchen = false;
+  countdownTimer: { hours: number; minutes: number; seconds: number } | null = null;
   private timeSubscription?: Subscription;
   private kitchenUpdateSubscription?: Subscription;
+  private countdownSubscription?: Subscription;
+
+  // Check-in/out status for students
+  checkInOutStatus: { isCheckedIn: boolean; checkInTime: string | null; checkOutTime: string | null; status: string | null } | null = null;
+  isLoadingStatus = false;
   
   mealNames: { [key: string]: string } = {
     breakfast: 'الإفطار',
@@ -58,6 +67,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private studentService: StudentService,
     private roomService: RoomService,
     private mealService: MealService,
+    private checkInOutService: CheckInOutService,
+    private http: HttpClient,
     public router: Router,
     private route: ActivatedRoute
   ) {}
@@ -75,7 +86,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Load kitchen data if student
     if (this.currentUser?.role === 'student') {
       this.loadKitchenData();
+      this.loadCheckInOutStatus();
       this.startTimeUpdate();
+      // Start countdown timer immediately
+      this.countdownSubscription = interval(1000).subscribe(() => {
+        this.updateCountdown();
+      });
     }
     
     // Update title when route changes
@@ -93,6 +109,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
     if (this.kitchenUpdateSubscription) {
       this.kitchenUpdateSubscription.unsubscribe();
+    }
+    if (this.countdownSubscription) {
+      this.countdownSubscription.unsubscribe();
     }
   }
 
@@ -223,6 +242,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (response.success) {
           this.kitchenStatus = response.data;
           this.updateNextMealTime();
+          this.updateCountdown();
         }
         this.isLoadingKitchen = false;
       },
@@ -240,14 +260,47 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.updateCurrentTime();
     });
 
-    // Refresh kitchen status every 30 seconds
+    // Refresh kitchen status and check-in/out status every 30 seconds
     this.kitchenUpdateSubscription = interval(30000).subscribe(() => {
       this.loadKitchenData();
+      this.loadCheckInOutStatus();
     });
   }
 
   updateCurrentTime() {
     this.currentTime = getCurrentTime12HourShort();
+  }
+
+  loadCheckInOutStatus() {
+    this.isLoadingStatus = true;
+    this.checkInOutService.getCurrentStatus().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.checkInOutStatus = response.data;
+        }
+        this.isLoadingStatus = false;
+      },
+      error: (error) => {
+        console.error('Error loading check-in/out status:', error);
+        this.isLoadingStatus = false;
+      }
+    });
+  }
+
+  formatDateTime(dateTime: string | null): string {
+    if (!dateTime) return '-';
+    const date = new Date(dateTime);
+    return date.toLocaleString('ar-EG', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  padNumber(num: number): string {
+    return num.toString().padStart(2, '0');
   }
 
   updateNextMealTime() {
@@ -258,6 +311,56 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.nextMealTime = formatTime12Hour(this.kitchenStatus.currentMeal.endTime);
     } else {
       this.nextMealTime = '';
+    }
+    this.updateCountdown();
+  }
+
+  updateCountdown() {
+    if (!this.kitchenStatus) {
+      this.countdownTimer = null;
+      return;
+    }
+
+    const now = new Date();
+    let targetTime: Date | null = null;
+
+    // If kitchen is open, countdown to when it closes
+    if (this.kitchenStatus.isOpen && this.kitchenStatus.currentMeal) {
+      const [hours, minutes] = this.kitchenStatus.currentMeal.endTime.split(':').map(Number);
+      targetTime = new Date();
+      targetTime.setHours(hours, minutes, 0, 0);
+      
+      // If the target time is earlier today, it means it's tomorrow
+      if (targetTime <= now) {
+        targetTime.setDate(targetTime.getDate() + 1);
+      }
+    } else if (this.kitchenStatus.nextMeal) {
+      // If kitchen is closed, countdown to next meal
+      const [hours, minutes] = this.kitchenStatus.nextMeal.startTime.split(':').map(Number);
+      targetTime = new Date();
+      targetTime.setHours(hours, minutes, 0, 0);
+      
+      // If the target time is earlier today, it means it's tomorrow
+      if (targetTime <= now) {
+        targetTime.setDate(targetTime.getDate() + 1);
+      }
+    }
+
+    if (targetTime) {
+      const diff = targetTime.getTime() - now.getTime();
+      if (diff > 0) {
+        const totalSeconds = Math.floor(diff / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        this.countdownTimer = { hours, minutes, seconds };
+      } else {
+        this.countdownTimer = { hours: 0, minutes: 0, seconds: 0 };
+        // Reload kitchen status when countdown reaches zero
+        this.loadKitchenData();
+      }
+    } else {
+      this.countdownTimer = null;
     }
   }
 }

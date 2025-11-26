@@ -36,17 +36,28 @@
 
   <!-- Student Details -->
   <div *ngIf="!isLoading && student" class="bg-white rounded-lg shadow-sm p-6">
+    <!-- Profile Image and Basic Info -->
+    <div class="mb-6 flex items-start space-x-6 space-x-reverse">
+      <div class="flex-shrink-0">
+        <img 
+          [src]="student.profileImage || 'https://via.placeholder.com/150?text=No+Image'" 
+          [alt]="student.name"
+          class="h-32 w-32 rounded-full object-cover border-4 border-gray-200 shadow-lg"
+          onerror="this.src='https://via.placeholder.com/150?text=No+Image'"
+        />
+      </div>
+      <div class="flex-1">
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ student.name }}</h2>
+        <p class="text-gray-600 mb-1">{{ student.email }}</p>
+        <p class="text-gray-600" *ngIf="student.college">{{ student.college.name }}</p>
+        <p class="text-gray-600" *ngIf="student.year">الفرقة {{ student.year }}</p>
+      </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Basic Info -->
       <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">الاسم</label>
-          <p class="text-lg font-semibold text-gray-900">{{ student.name }}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">البريد الإلكتروني</label>
-          <p class="text-lg text-gray-900">{{ student.email }}</p>
-        </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">المعلومات الأساسية</h3>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">الكلية</label>
           <p class="text-lg text-gray-900">{{ student.college?.name || 'غير محدد' }}</p>
@@ -55,9 +66,6 @@
           <label class="block text-sm font-medium text-gray-500 mb-1">الفرقة</label>
           <p class="text-lg text-gray-900">الفرقة {{ student.year }}</p>
         </div>
-      </div>
-
-      <div class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">العمر</label>
           <p class="text-lg text-gray-900">{{ student.age }}</p>
@@ -70,6 +78,36 @@
           <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الإنشاء</label>
           <p class="text-lg text-gray-900">{{ formatDateTime(student.createdAt) }}</p>
         </div>
+      </div>
+
+      <!-- Additional Info -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">معلومات إضافية</h3>
+        <div *ngIf="student.governorate">
+          <label class="block text-sm font-medium text-gray-500 mb-1">المحافظة</label>
+          <p class="text-lg text-gray-900">{{ student.governorate }}</p>
+        </div>
+        <div *ngIf="student.address">
+          <label class="block text-sm font-medium text-gray-500 mb-1">العنوان</label>
+          <p class="text-lg text-gray-900">{{ student.address }}</p>
+        </div>
+        <div *ngIf="student.guardianPhone">
+          <label class="block text-sm font-medium text-gray-500 mb-1">رقم ولي الأمر</label>
+          <p class="text-lg text-gray-900">{{ student.guardianPhone }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ID Card Image -->
+    <div *ngIf="student.idCardImage" class="mt-8 pt-8 border-t border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">صورة البطاقة الشخصية</h3>
+      <div class="flex justify-center">
+        <img 
+          [src]="student.idCardImage" 
+          alt="صورة البطاقة الشخصية"
+          class="max-w-md w-full h-auto border border-gray-300 rounded-lg shadow-md"
+          onerror="this.style.display='none'"
+        />
       </div>
     </div>
 

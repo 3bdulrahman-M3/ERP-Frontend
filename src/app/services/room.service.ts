@@ -15,7 +15,11 @@ export interface RoomStudent {
     id: number;
     name: string;
     email: string;
-    college: string;
+    year?: number;
+    college?: {
+      id: number;
+      name: string;
+    };
     phoneNumber?: string;
     user?: {
       id: number;
@@ -49,6 +53,12 @@ export interface Room {
   createdAt: string;
   updatedAt: string;
   roomStudents?: RoomStudent[];
+  services?: Array<{
+    id: number;
+    name: string;
+    description?: string;
+    icon?: string;
+  }>;
 }
 
 export interface CreateRoomRequest {
@@ -61,6 +71,7 @@ export interface CreateRoomRequest {
   bedPrice?: number;
   description?: string;
   status?: 'available' | 'occupied' | 'maintenance' | 'reserved';
+  serviceIds?: number[];
 }
 
 export interface UpdateRoomRequest {
@@ -73,6 +84,7 @@ export interface UpdateRoomRequest {
   bedPrice?: number;
   description?: string;
   status?: 'available' | 'occupied' | 'maintenance' | 'reserved';
+  serviceIds?: number[];
 }
 
 export interface AssignStudentRequest {

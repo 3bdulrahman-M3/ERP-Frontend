@@ -81,10 +81,14 @@ export class RoomDetailComponent implements OnInit {
         next: (response) => {
           if (response.success) {
             this.router.navigate(['/dashboard/rooms']);
+          } else {
+            alert(response.message || 'فشل حذف الغرفة');
           }
         },
         error: (error) => {
-          alert(error.error?.message || 'فشل حذف الغرفة');
+          console.error('Delete room error:', error);
+          const errorMessage = error.error?.message || error.message || 'فشل حذف الغرفة';
+          alert(errorMessage);
         }
       });
     }

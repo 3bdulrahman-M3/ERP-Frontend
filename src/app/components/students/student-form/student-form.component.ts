@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { StudentService, CreateStudentRequest, UpdateStudentRequest } from '../../../services/student.service';
 import { CollegeService, College } from '../../../services/college.service';
+import { UploadService } from '../../../services/upload.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 
 @Component({
@@ -27,15 +28,24 @@ export class StudentFormComponent implements OnInit {
     collegeId: null as number | null,
     year: null as number | null,
     age: null as number | null,
-    phoneNumber: ''
+    phoneNumber: '',
+    profileImage: '',
+    governorate: '',
+    address: '',
+    guardianPhone: '',
+    idCardImage: ''
   };
 
   colleges: College[] = [];
   years = [1, 2, 3, 4, 5, 6];
 
+  uploadingProfileImage = false;
+  uploadingIdCard = false;
+
   constructor(
     private studentService: StudentService,
     private collegeService: CollegeService,
+    private uploadService: UploadService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -51,10 +61,11 @@ export class StudentFormComponent implements OnInit {
   }
 
   loadColleges() {
-    this.collegeService.getAllColleges().subscribe({
+    // Get all colleges without pagination (use large limit)
+    this.collegeService.getAllColleges(1, 1000).subscribe({
       next: (response) => {
         if (response.success) {
-          this.colleges = response.data;
+          this.colleges = response.data.colleges;
         }
       },
       error: (error) => {
@@ -79,7 +90,12 @@ export class StudentFormComponent implements OnInit {
             collegeId: student.collegeId || null,
             year: student.year || null,
             age: student.age,
-            phoneNumber: student.phoneNumber
+            phoneNumber: student.phoneNumber,
+            profileImage: student.profileImage || '',
+            governorate: student.governorate || '',
+            address: student.address || '',
+            guardianPhone: student.guardianPhone || '',
+            idCardImage: student.idCardImage || ''
           };
         }
       },
@@ -106,12 +122,19 @@ export class StudentFormComponent implements OnInit {
         collegeId: this.formData.collegeId || undefined,
         year: this.formData.year || undefined,
         age: this.formData.age!,
-        phoneNumber: this.formData.phoneNumber
+        phoneNumber: this.formData.phoneNumber,
+        profileImage: this.formData.profileImage || undefined,
+        governorate: this.formData.governorate || undefined,
+        address: this.formData.address || undefined,
+        guardianPhone: this.formData.guardianPhone || undefined,
+        idCardImage: this.formData.idCardImage || undefined
       };
 
       if (this.formData.password) {
         updateData.password = this.formData.password;
       }
+
+      console.log('Updating student with data:', updateData);
 
       this.studentService.updateStudent(this.studentId, updateData).subscribe({
         next: (response) => {
@@ -141,8 +164,15 @@ export class StudentFormComponent implements OnInit {
         collegeId: this.formData.collegeId || undefined,
         year: this.formData.year || undefined,
         age: this.formData.age!,
-        phoneNumber: this.formData.phoneNumber
+        phoneNumber: this.formData.phoneNumber,
+        profileImage: this.formData.profileImage || undefined,
+        governorate: this.formData.governorate || undefined,
+        address: this.formData.address || undefined,
+        guardianPhone: this.formData.guardianPhone || undefined,
+        idCardImage: this.formData.idCardImage || undefined
       };
+
+      console.log('Creating student with data:', createData);
 
       this.studentService.createStudent(createData).subscribe({
         next: (response) => {
@@ -218,6 +248,90 @@ export class StudentFormComponent implements OnInit {
 
   cancel() {
     this.router.navigate(['/dashboard/students']);
+  }
+
+  onProfileImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorMessage = 'حجم الصورة يجب أن يكون أقل من 5MB';
+        return;
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        this.errorMessage = 'يُسمح فقط بملفات الصور (JPEG, JPG, PNG, GIF, WEBP)';
+        return;
+      }
+
+      this.uploadingProfileImage = true;
+      this.errorMessage = '';
+
+      this.uploadService.uploadImage(file).subscribe({
+        next: (response) => {
+          console.log('Upload response:', response);
+          this.uploadingProfileImage = false;
+          if (response.success) {
+            this.formData.profileImage = response.data.url;
+            this.successMessage = 'تم رفع الصورة الشخصية بنجاح';
+            console.log('Image URL saved:', response.data.url);
+          } else {
+            this.errorMessage = response.message || 'فشل رفع الصورة الشخصية';
+          }
+        },
+        error: (error) => {
+          console.error('Upload error:', error);
+          this.uploadingProfileImage = false;
+          this.errorMessage = error.error?.message || error.message || 'فشل رفع الصورة الشخصية';
+        }
+      });
+    }
+  }
+
+  onIdCardImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorMessage = 'حجم الصورة يجب أن يكون أقل من 5MB';
+        return;
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        this.errorMessage = 'يُسمح فقط بملفات الصور (JPEG, JPG, PNG, GIF, WEBP)';
+        return;
+      }
+
+      this.uploadingIdCard = true;
+      this.errorMessage = '';
+
+      this.uploadService.uploadImage(file).subscribe({
+        next: (response) => {
+          console.log('Upload response:', response);
+          this.uploadingIdCard = false;
+          if (response.success) {
+            this.formData.idCardImage = response.data.url;
+            this.successMessage = 'تم رفع صورة البطاقة الشخصية بنجاح';
+            console.log('ID Card URL saved:', response.data.url);
+          } else {
+            this.errorMessage = response.message || 'فشل رفع صورة البطاقة الشخصية';
+          }
+        },
+        error: (error) => {
+          console.error('Upload error:', error);
+          this.uploadingIdCard = false;
+          this.errorMessage = error.error?.message || error.message || 'فشل رفع صورة البطاقة الشخصية';
+        }
+      });
+    }
+  }
+
+  removeProfileImage() {
+    this.formData.profileImage = '';
+  }
+
+  removeIdCardImage() {
+    this.formData.idCardImage = '';
   }
 }
 

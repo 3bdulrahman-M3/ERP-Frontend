@@ -1,0 +1,14 @@
+/* Check-in-out component styles */
+#qr-reader {
+  min-height: 300px;
+}
+
+#qr-reader__dashboard {
+  display: none !important;
+}
+
+#qr-reader__camera_selection {
+  display: none !important;
+}
+
+

@@ -85,6 +85,19 @@
         <p class="text-gray-700">{{ room.description }}</p>
       </div>
 
+      <!-- Services -->
+      <div *ngIf="room.services && room.services.length > 0" class="mt-6 pt-6 border-t border-gray-200">
+        <label class="block text-sm font-bold text-gray-500 mb-3">الخدمات المتاحة</label>
+        <div class="flex flex-wrap gap-2">
+          <span
+            *ngFor="let service of room.services"
+            class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium"
+          >
+            {{ service.name }}
+          </span>
+        </div>
+      </div>
+
       <!-- Progress Bar -->
       <div class="mt-6">
         <div class="flex justify-between text-sm font-semibold text-gray-600 mb-2">
@@ -129,7 +142,12 @@
             <div>
               <h4 class="font-bold text-gray-900">{{ roomStudent.student?.name }}</h4>
               <p class="text-sm text-gray-600">{{ roomStudent.student?.email }}</p>
-              <p class="text-sm text-gray-600">{{ roomStudent.student?.college }}</p>
+              <ng-container *ngIf="roomStudent.student && roomStudent.student.college as college">
+                <p class="text-sm text-gray-600">
+                  {{ college.name }}
+                  <span *ngIf="roomStudent.student?.year"> - الفرقة {{ roomStudent.student.year }}</span>
+                </p>
+              </ng-container>
             </div>
             <button
               (click)="checkOutStudent(roomStudent.studentId, roomStudent.student?.name || '')"

@@ -61,10 +61,10 @@ export class KitchenComponent implements OnInit, OnDestroy {
     });
 
     // Load all meals
-    this.mealService.getAllMeals().subscribe({
+    this.mealService.getAllMeals(1, 1000).subscribe({
       next: (response) => {
         if (response.success) {
-          this.allMeals = response.data.filter(meal => meal.isActive);
+          this.allMeals = response.data.meals.filter((meal: any) => meal.isActive);
         }
       },
       error: (error) => {

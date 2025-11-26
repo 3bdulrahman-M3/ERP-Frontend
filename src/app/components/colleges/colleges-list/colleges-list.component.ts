@@ -30,6 +30,10 @@ export class CollegesListComponent implements OnInit {
   limit = 10;
   total = 0;
   totalPages = 0;
+  currentPageStudents = 1;
+  limitStudents = 10;
+  totalStudents = 0;
+  totalPagesStudents = 0;
   years = [1, 2, 3, 4, 5, 6];
   
   formData = {
@@ -45,18 +49,20 @@ export class CollegesListComponent implements OnInit {
 
   ngOnInit() {
     this.loadColleges();
-    this.loadStudents();
   }
 
   loadColleges() {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.collegeService.getAllColleges().subscribe({
+    this.collegeService.getAllColleges(this.currentPage, this.limit).subscribe({
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          this.colleges = response.data;
+          this.colleges = response.data.colleges;
+          this.total = response.data.pagination.total;
+          this.totalPages = response.data.pagination.totalPages;
+          this.currentPage = response.data.pagination.page;
         }
       },
       error: (error) => {
@@ -174,13 +180,13 @@ export class CollegesListComponent implements OnInit {
   }
 
   onFilterChange() {
-    this.currentPage = 1;
+    this.currentPageStudents = 1;
     this.loadStudents();
   }
 
   onPageSizeChange() {
     this.currentPage = 1;
-    this.loadStudents();
+    this.loadColleges();
   }
 
   loadStudents() {
@@ -190,16 +196,16 @@ export class CollegesListComponent implements OnInit {
     this.studentService.getStudentsByCollegeAndYear(
       this.selectedCollegeId || undefined,
       this.selectedYear || undefined,
-      this.currentPage,
-      this.limit
+      this.currentPageStudents,
+      this.limitStudents
     ).subscribe({
       next: (response) => {
         this.isLoadingStudents = false;
         if (response.success) {
           this.students = response.data.students;
-          this.total = response.data.pagination.total;
-          this.totalPages = response.data.pagination.totalPages;
-          this.currentPage = response.data.pagination.page;
+          this.totalStudents = response.data.pagination.total;
+          this.totalPagesStudents = response.data.pagination.totalPages;
+          this.currentPageStudents = response.data.pagination.page;
         }
       },
       error: (error) => {
@@ -223,6 +229,13 @@ export class CollegesListComponent implements OnInit {
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.loadColleges();
+    }
+  }
+
+  goToPageStudents(page: number) {
+    if (page >= 1 && page <= this.totalPagesStudents) {
+      this.currentPageStudents = page;
       this.loadStudents();
     }
   }
@@ -232,6 +245,23 @@ export class CollegesListComponent implements OnInit {
     const maxPages = Math.min(this.totalPages, 5);
     let startPage = Math.max(1, this.currentPage - 2);
     let endPage = Math.min(this.totalPages, startPage + maxPages - 1);
+    
+    if (endPage - startPage < maxPages - 1) {
+      startPage = Math.max(1, endPage - maxPages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }
+
+  getPageNumbersStudents(): number[] {
+    const pages: number[] = [];
+    const maxPages = Math.min(this.totalPagesStudents, 5);
+    let startPage = Math.max(1, this.currentPageStudents - 2);
+    let endPage = Math.min(this.totalPagesStudents, startPage + maxPages - 1);
     
     if (endPage - startPage < maxPages - 1) {
       startPage = Math.max(1, endPage - maxPages + 1);

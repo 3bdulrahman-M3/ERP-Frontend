@@ -13,6 +13,11 @@ export interface Student {
   phoneNumber: string;
   qrCode: string;
   userId: number;
+  profileImage?: string;
+  governorate?: string;
+  address?: string;
+  guardianPhone?: string;
+  idCardImage?: string;
   createdAt: string;
   updatedAt: string;
   college?: {
@@ -50,6 +55,11 @@ export interface CreateStudentRequest {
   year?: number;
   age: number;
   phoneNumber: string;
+  profileImage?: string;
+  governorate?: string;
+  address?: string;
+  guardianPhone?: string;
+  idCardImage?: string;
 }
 
 export interface UpdateStudentRequest {
@@ -60,6 +70,11 @@ export interface UpdateStudentRequest {
   year?: number;
   age?: number;
   phoneNumber?: string;
+  profileImage?: string;
+  governorate?: string;
+  address?: string;
+  guardianPhone?: string;
+  idCardImage?: string;
 }
 
 export interface StudentsResponse {

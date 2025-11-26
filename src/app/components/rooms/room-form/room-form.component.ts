@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { RoomService, CreateRoomRequest, UpdateRoomRequest } from '../../../services/room.service';
+import { ServiceService, Service } from '../../../services/service.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 
 @Component({
@@ -20,6 +21,8 @@ export class RoomFormComponent implements OnInit {
   successMessage = '';
 
   buildings = ['A', 'B', 'C'];
+  services: Service[] = [];
+  selectedServiceIds: number[] = [];
 
   formData = {
     roomNumber: '',
@@ -35,17 +38,33 @@ export class RoomFormComponent implements OnInit {
 
   constructor(
     private roomService: RoomService,
+    private serviceService: ServiceService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
+    this.loadServices();
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isEditMode = true;
       this.roomId = +id;
       this.loadRoom();
     }
+  }
+
+  loadServices() {
+    // Get all services without pagination (use large limit)
+    this.serviceService.getAllServices(1, 1000).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.services = response.data.services;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading services:', error);
+      }
+    });
   }
 
   loadRoom() {
@@ -68,6 +87,8 @@ export class RoomFormComponent implements OnInit {
             description: room.description || '',
             status: room.status
           };
+          // Load selected services
+          this.selectedServiceIds = room.services ? room.services.map(s => s.id) : [];
         }
       },
       error: (error) => {
@@ -96,7 +117,8 @@ export class RoomFormComponent implements OnInit {
         roomPrice: this.formData.roomPrice || undefined,
         bedPrice: this.formData.bedPrice || undefined,
         description: this.formData.description || undefined,
-        status: this.formData.status
+        status: this.formData.status,
+        serviceIds: this.selectedServiceIds
       };
 
       this.roomService.updateRoom(this.roomId, updateData).subscribe({
@@ -124,7 +146,8 @@ export class RoomFormComponent implements OnInit {
         roomPrice: this.formData.roomPrice || undefined,
         bedPrice: this.formData.bedPrice || undefined,
         description: this.formData.description || undefined,
-        status: this.formData.status
+        status: this.formData.status,
+        serviceIds: this.selectedServiceIds
       };
 
       this.roomService.createRoom(createData).subscribe({
@@ -186,6 +209,15 @@ export class RoomFormComponent implements OnInit {
 
   cancel() {
     this.router.navigate(['/dashboard/rooms']);
+  }
+
+  toggleService(serviceId: number) {
+    const index = this.selectedServiceIds.indexOf(serviceId);
+    if (index > -1) {
+      this.selectedServiceIds.splice(index, 1);
+    } else {
+      this.selectedServiceIds.push(serviceId);
+    }
   }
 }
 

@@ -139,6 +139,147 @@
           placeholder="01234567890"
         />
       </div>
+
+      <!-- Governorate -->
+      <div>
+        <label for="governorate" class="block text-sm font-medium text-gray-700 mb-2">
+          المحافظة
+        </label>
+        <input
+          id="governorate"
+          type="text"
+          [(ngModel)]="formData.governorate"
+          name="governorate"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="أدخل المحافظة"
+        />
+      </div>
+
+      <!-- Address -->
+      <div>
+        <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+          العنوان
+        </label>
+        <textarea
+          id="address"
+          [(ngModel)]="formData.address"
+          name="address"
+          rows="3"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="أدخل العنوان الكامل"
+        ></textarea>
+      </div>
+
+      <!-- Guardian Phone -->
+      <div>
+        <label for="guardianPhone" class="block text-sm font-medium text-gray-700 mb-2">
+          رقم ولي الأمر
+        </label>
+        <input
+          id="guardianPhone"
+          type="tel"
+          [(ngModel)]="formData.guardianPhone"
+          name="guardianPhone"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="01234567890"
+        />
+      </div>
+    </div>
+
+    <!-- Image Uploads Section -->
+    <div class="mt-6 pt-6 border-t border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">الصور</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Profile Image -->
+        <div>
+          <label for="profileImage" class="block text-sm font-medium text-gray-700 mb-2">
+            الصورة الشخصية
+          </label>
+          <div class="flex items-center gap-3 mb-2">
+            <label
+              for="profileImageFile"
+              class="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition text-center"
+              [class.opacity-50]="uploadingProfileImage"
+            >
+              <input
+                id="profileImageFile"
+                type="file"
+                accept="image/*"
+                (change)="onProfileImageSelected($event)"
+                class="hidden"
+                [disabled]="uploadingProfileImage"
+              />
+              <span *ngIf="!uploadingProfileImage" class="text-sm text-gray-600">
+                {{ formData.profileImage ? 'تغيير الصورة' : 'اختر صورة شخصية' }}
+              </span>
+              <span *ngIf="uploadingProfileImage" class="text-sm text-blue-600">
+                جاري الرفع...
+              </span>
+            </label>
+            <button
+              *ngIf="formData.profileImage && !uploadingProfileImage"
+              type="button"
+              (click)="removeProfileImage()"
+              class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm"
+            >
+              حذف
+            </button>
+          </div>
+          <div *ngIf="formData.profileImage" class="mt-2">
+            <img 
+              [src]="formData.profileImage" 
+              alt="الصورة الشخصية"
+              class="h-32 w-32 rounded-full object-cover border-2 border-gray-200 shadow-md"
+              onerror="this.style.display='none'"
+            />
+          </div>
+        </div>
+
+        <!-- ID Card Image -->
+        <div>
+          <label for="idCardImage" class="block text-sm font-medium text-gray-700 mb-2">
+            صورة البطاقة الشخصية
+          </label>
+          <div class="flex items-center gap-3 mb-2">
+            <label
+              for="idCardImageFile"
+              class="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition text-center"
+              [class.opacity-50]="uploadingIdCard"
+            >
+              <input
+                id="idCardImageFile"
+                type="file"
+                accept="image/*"
+                (change)="onIdCardImageSelected($event)"
+                class="hidden"
+                [disabled]="uploadingIdCard"
+              />
+              <span *ngIf="!uploadingIdCard" class="text-sm text-gray-600">
+                {{ formData.idCardImage ? 'تغيير الصورة' : 'اختر صورة البطاقة' }}
+              </span>
+              <span *ngIf="uploadingIdCard" class="text-sm text-blue-600">
+                جاري الرفع...
+              </span>
+            </label>
+            <button
+              *ngIf="formData.idCardImage && !uploadingIdCard"
+              type="button"
+              (click)="removeIdCardImage()"
+              class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm"
+            >
+              حذف
+            </button>
+          </div>
+          <div *ngIf="formData.idCardImage" class="mt-2">
+            <img 
+              [src]="formData.idCardImage" 
+              alt="صورة البطاقة"
+              class="max-w-xs h-auto rounded-lg border-2 border-gray-200 shadow-md"
+              onerror="this.style.display='none'"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Form Actions -->

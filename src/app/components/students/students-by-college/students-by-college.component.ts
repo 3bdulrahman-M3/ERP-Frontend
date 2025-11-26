@@ -35,10 +35,11 @@ export class StudentsByCollegeComponent implements OnInit {
   }
 
   loadColleges() {
-    this.collegeService.getAllColleges().subscribe({
+    // Get all colleges without pagination (use large limit)
+    this.collegeService.getAllColleges(1, 1000).subscribe({
       next: (response) => {
         if (response.success) {
-          this.colleges = response.data;
+          this.colleges = response.data.colleges;
         }
       },
       error: (error) => {

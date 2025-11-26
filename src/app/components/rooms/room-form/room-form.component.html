@@ -180,6 +180,31 @@
           placeholder="وصف الغرفة..."
         ></textarea>
       </div>
+
+      <!-- Services -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-bold text-gray-700 mb-2">
+          الخدمات المتاحة
+        </label>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <label
+            *ngFor="let service of services"
+            class="flex items-center p-3 border-2 rounded-lg cursor-pointer transition-all"
+            [class.border-blue-500.bg-blue-50]="selectedServiceIds.includes(service.id)"
+            [class.border-gray-300.bg-white]="!selectedServiceIds.includes(service.id)"
+          >
+            <input
+              type="checkbox"
+              [value]="service.id"
+              [checked]="selectedServiceIds.includes(service.id)"
+              (change)="toggleService(service.id)"
+              class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span class="mr-2 text-sm font-medium text-gray-700">{{ service.name }}</span>
+          </label>
+        </div>
+        <p *ngIf="services.length === 0" class="text-sm text-gray-500 mt-2">لا توجد خدمات متاحة. يرجى إضافة خدمات أولاً.</p>
+      </div>
     </div>
 
     <!-- Form Actions -->

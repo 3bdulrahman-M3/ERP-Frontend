@@ -20,6 +20,10 @@ export class MealsListComponent implements OnInit {
   showEditModal = false;
   showDeleteModal = false;
   selectedMeal: Meal | null = null;
+  currentPage = 1;
+  limit = 10;
+  total = 0;
+  totalPages = 0;
   
   formData = {
     name: 'breakfast' as 'breakfast' | 'lunch' | 'dinner',
@@ -44,9 +48,14 @@ export class MealsListComponent implements OnInit {
   loadMeals() {
     this.isLoading = true;
     this.errorMessage = '';
-    this.mealService.getAllMeals().subscribe({
+    this.mealService.getAllMeals(this.currentPage, this.limit).subscribe({
       next: (response) => {
-        this.meals = response.data;
+        if (response.success) {
+          this.meals = response.data.meals;
+          this.total = response.data.pagination.total;
+          this.totalPages = response.data.pagination.totalPages;
+          this.currentPage = response.data.pagination.page;
+        }
         this.isLoading = false;
       },
       error: (error) => {
@@ -183,6 +192,39 @@ export class MealsListComponent implements OnInit {
 
   formatTime(time: string): string {
     return formatTime12Hour(time);
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.loadMeals();
+    }
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 1;
+    this.loadMeals();
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxPages = Math.min(this.totalPages, 5);
+    let startPage = Math.max(1, this.currentPage - 2);
+    let endPage = Math.min(this.totalPages, startPage + maxPages - 1);
+    
+    if (endPage - startPage < maxPages - 1) {
+      startPage = Math.max(1, endPage - maxPages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  }
+
+  get Math() {
+    return Math;
   }
 }
 

@@ -25,15 +25,57 @@
         <div *ngIf="menuItems.length === 0" class="text-white/60 text-center p-4">
           <p>لا توجد عناصر في القائمة</p>
         </div>
-        <div *ngFor="let item of menuItems; let i = index" (click)="navigateTo(item.route)" [style.animation-delay.ms]="i * 100">
-          <div
-            [class]="item.active ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-r-4 border-cyan-400' : 'text-white/80 hover:bg-white/20 hover:text-white'"
-            class="flex items-center space-x-3 space-x-reverse p-4 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-105 hover:translate-x-2 animate-slide-right"
-          >
-            <span class="text-2xl transform hover:scale-125 transition-transform duration-300">{{ item.icon }}</span>
-            <span class="font-bold text-lg">{{ item.label }}</span>
+        <ng-container *ngFor="let item of menuItems; let i = index">
+          <div [style.animation-delay.ms]="i * 100">
+            <!-- Menu Item with Submenu -->
+            <div *ngIf="item.hasSubmenu" class="space-y-2">
+              <div
+                (click)="toggleSubmenu(item.route); $event.stopPropagation()"
+                [class]="item.active || isSubmenuExpanded(item.route) ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-r-4 border-cyan-400' : 'text-white/80 hover:bg-white/20 hover:text-white'"
+                class="flex items-center justify-between space-x-3 space-x-reverse p-4 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-105 hover:translate-x-2 animate-slide-right"
+              >
+                <div class="flex items-center space-x-3 space-x-reverse">
+                  <span class="text-2xl transform hover:scale-125 transition-transform duration-300">{{ item.icon }}</span>
+                  <span class="font-bold text-lg">{{ item.label }}</span>
+                </div>
+                <svg 
+                  [class.rotate-180]="isSubmenuExpanded(item.route)"
+                  class="h-5 w-5 transition-transform duration-300" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              <!-- Submenu Items -->
+              <div 
+                *ngIf="isSubmenuExpanded(item.route)" 
+                class="mr-8 space-y-2 animate-slide-down"
+              >
+                <div 
+                  *ngFor="let subItem of getSubmenuItems(item.route)"
+                  (click)="navigateTo(subItem.route); $event.stopPropagation()"
+                  [class]="subItem.active ? 'bg-white/25 backdrop-blur-md text-white border-r-2 border-cyan-300' : 'text-white/70 hover:bg-white/15 hover:text-white'"
+                  class="flex items-center space-x-3 space-x-reverse p-3 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 hover:translate-x-2"
+                >
+                  <span class="text-xl">{{ subItem.icon }}</span>
+                  <span class="font-semibold text-sm">{{ subItem.label }}</span>
+                </div>
+              </div>
+            </div>
+            <!-- Regular Menu Item -->
+            <div 
+              *ngIf="!item.hasSubmenu"
+              (click)="navigateTo(item.route)"
+              [class]="item.active ? 'bg-white/30 backdrop-blur-md text-white shadow-xl border-r-4 border-cyan-400' : 'text-white/80 hover:bg-white/20 hover:text-white'"
+              class="flex items-center space-x-3 space-x-reverse p-4 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-105 hover:translate-x-2 animate-slide-right"
+            >
+              <span class="text-2xl transform hover:scale-125 transition-transform duration-300">{{ item.icon }}</span>
+              <span class="font-bold text-lg">{{ item.label }}</span>
+            </div>
           </div>
-        </div>
+        </ng-container>
       </div>
     </div>
   </aside>

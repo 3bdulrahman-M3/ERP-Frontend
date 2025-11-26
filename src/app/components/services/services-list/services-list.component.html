@@ -1,10 +1,10 @@
-<app-layout pageTitle="الكليات">
+<app-layout pageTitle="الخدمات">
 <div class="p-6 animate-fade-in">
   <!-- Header -->
   <div class="flex justify-between items-center mb-8 animate-slide-down">
     <div>
-      <h2 class="text-4xl font-bold gradient-text mb-2">الكليات</h2>
-      <p class="text-gray-600">عرض جميع الكليات وعدد الطلاب في كل كلية</p>
+      <h2 class="text-4xl font-bold gradient-text mb-2">الخدمات</h2>
+      <p class="text-gray-600">إدارة الخدمات المتاحة في الغرف</p>
     </div>
     <button
       (click)="openAddModal()"
@@ -13,7 +13,7 @@
       <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
-      <span>إضافة كلية</span>
+      <span>إضافة خدمة</span>
     </button>
   </div>
 
@@ -27,44 +27,45 @@
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
   </div>
 
-  <!-- Colleges Table -->
-  <div *ngIf="!isLoading && colleges.length > 0" class="bg-white rounded-lg shadow-sm overflow-hidden">
+  <!-- Services Table -->
+  <div *ngIf="!isLoading && services.length > 0" class="bg-white rounded-lg shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم الكلية</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم الخدمة</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الوصف</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الطلاب</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الغرف</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr *ngFor="let college of colleges" class="hover:bg-gray-50">
+          <tr *ngFor="let service of services" class="hover:bg-gray-50">
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">{{ college.name }}</div>
+              <div class="flex items-center space-x-2 space-x-reverse">
+                <span *ngIf="service.icon" class="text-lg">{{ service.icon }}</span>
+                <span class="text-sm font-medium text-gray-900">{{ service.name }}</span>
+              </div>
             </td>
             <td class="px-6 py-4">
-              <div class="text-sm text-gray-500">{{ college.description || 'لا يوجد وصف' }}</div>
+              <span class="text-sm text-gray-500">{{ service.description || '-' }}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-semibold text-blue-600">{{ college.studentCount || 0 }}</div>
+              <span class="text-sm font-semibold text-blue-600">{{ service.roomCount || 0 }}</span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex items-center space-x-2 space-x-reverse">
                 <button
-                  (click)="openEditModal(college)"
-                  class="text-green-600 hover:text-green-900"
-                  title="تعديل"
+                  (click)="openEditModal(service)"
+                  class="text-blue-600 hover:text-blue-900"
                 >
-                  ✏️
+                  تعديل
                 </button>
                 <button
-                  (click)="openDeleteModal(college)"
+                  (click)="openDeleteModal(service)"
                   class="text-red-600 hover:text-red-900"
-                  title="حذف"
                 >
-                  🗑️
+                  حذف
                 </button>
               </div>
             </td>
@@ -158,18 +159,18 @@
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="!isLoading && colleges.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
+  <div *ngIf="!isLoading && services.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-    <h3 class="mt-2 text-sm font-medium text-gray-900">لا توجد كليات</h3>
-    <p class="mt-1 text-sm text-gray-500">ابدأ بإضافة كلية جديدة.</p>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">لا توجد خدمات</h3>
+    <p class="mt-1 text-sm text-gray-500">ابدأ بإضافة خدمة جديدة.</p>
     <div class="mt-6">
       <button
-        (click)="openManageModal()"
+        (click)="openAddModal()"
         class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
       >
-        إضافة كلية جديدة
+        إضافة خدمة جديدة
       </button>
     </div>
   </div>
@@ -184,15 +185,15 @@
       class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
       (click)="$event.stopPropagation()"
     >
-      <h3 class="text-2xl font-bold text-gray-800 mb-6">إضافة كلية جديدة</h3>
+      <h3 class="text-2xl font-bold text-gray-800 mb-6">إضافة خدمة جديدة</h3>
       
       <div class="mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الكلية <span class="text-red-500">*</span></label>
+        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الخدمة <span class="text-red-500">*</span></label>
         <input
           type="text"
           [(ngModel)]="formData.name"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          placeholder="مثال: كلية الهندسة"
+          placeholder="مثال: WiFi"
         />
       </div>
 
@@ -202,8 +203,18 @@
           [(ngModel)]="formData.description"
           rows="3"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          placeholder="وصف الكلية..."
+          placeholder="وصف الخدمة..."
         ></textarea>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-700 mb-2">الأيقونة</label>
+        <input
+          type="text"
+          [(ngModel)]="formData.icon"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="مثال: wifi"
+        />
       </div>
 
       <div class="flex gap-3">
@@ -214,7 +225,7 @@
           إلغاء
         </button>
         <button
-          (click)="addCollege()"
+          (click)="addService()"
           [disabled]="isLoading"
           class="btn-primary flex-1 px-4 py-3 text-white rounded-xl font-bold transition duration-200 disabled:opacity-50"
         >
@@ -234,15 +245,15 @@
       class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
       (click)="$event.stopPropagation()"
     >
-      <h3 class="text-2xl font-bold text-gray-800 mb-6">تعديل الكلية</h3>
+      <h3 class="text-2xl font-bold text-gray-800 mb-6">تعديل الخدمة</h3>
       
       <div class="mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الكلية <span class="text-red-500">*</span></label>
+        <label class="block text-sm font-bold text-gray-700 mb-2">اسم الخدمة <span class="text-red-500">*</span></label>
         <input
           type="text"
           [(ngModel)]="formData.name"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          placeholder="مثال: كلية الهندسة"
+          placeholder="مثال: WiFi"
         />
       </div>
 
@@ -252,8 +263,18 @@
           [(ngModel)]="formData.description"
           rows="3"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          placeholder="وصف الكلية..."
+          placeholder="وصف الخدمة..."
         ></textarea>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-sm font-bold text-gray-700 mb-2">الأيقونة</label>
+        <input
+          type="text"
+          [(ngModel)]="formData.icon"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="مثال: wifi"
+        />
       </div>
 
       <div class="flex gap-3">
@@ -264,7 +285,7 @@
           إلغاء
         </button>
         <button
-          (click)="updateCollege()"
+          (click)="updateService()"
           [disabled]="isLoading"
           class="btn-primary flex-1 px-4 py-3 text-white rounded-xl font-bold transition duration-200 disabled:opacity-50"
         >
@@ -284,10 +305,10 @@
       class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
       (click)="$event.stopPropagation()"
     >
-      <h3 class="text-2xl font-bold text-gray-800 mb-6">حذف الكلية</h3>
+      <h3 class="text-2xl font-bold text-gray-800 mb-6">حذف الخدمة</h3>
       
       <p class="text-gray-700 mb-6">
-        هل أنت متأكد من حذف الكلية "<strong>{{ selectedCollege?.name }}</strong>"؟
+        هل أنت متأكد من حذف الخدمة "<strong>{{ selectedService?.name }}</strong>"؟
         <br>
         <span class="text-sm text-red-600">هذا الإجراء لا يمكن التراجع عنه.</span>
       </p>
@@ -300,83 +321,12 @@
           إلغاء
         </button>
         <button
-          (click)="deleteCollege()"
+          (click)="deleteService()"
           [disabled]="isLoading"
           class="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition duration-200 disabled:opacity-50"
         >
           {{ isLoading ? 'جاري الحذف...' : 'حذف' }}
         </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Manage Colleges Modal -->
-  <div
-    *ngIf="showManageModal"
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in"
-    (click)="closeManageModal()"
-  >
-    <div
-      class="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto animate-scale-in"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold text-gray-800">إدارة الكليات</h3>
-        <button
-          (click)="closeManageModal()"
-          class="p-2 rounded-lg hover:bg-gray-100 transition duration-200"
-        >
-          <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Add College Button -->
-      <div class="mb-6">
-        <button
-          (click)="openAddModal()"
-          class="btn-primary px-6 py-3 text-white rounded-xl font-bold shadow-lg flex items-center space-x-2 space-x-reverse"
-        >
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          <span>إضافة كلية جديدة</span>
-        </button>
-      </div>
-
-      <!-- Colleges Grid -->
-      <div *ngIf="!isLoading && colleges.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div
-          *ngFor="let college of colleges"
-          class="bg-gray-50 rounded-xl p-4 border border-gray-200"
-        >
-          <div class="flex justify-between items-start mb-2">
-            <div class="flex-1">
-              <h4 class="text-lg font-bold text-gray-900">{{ college.name }}</h4>
-              <p *ngIf="college.description" class="text-sm text-gray-600 mt-1">{{ college.description }}</p>
-            </div>
-          </div>
-          <div class="flex items-center justify-end space-x-2 space-x-reverse mt-3">
-            <button
-              (click)="openEditModal(college)"
-              class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition duration-200"
-            >
-              تعديل
-            </button>
-            <button
-              (click)="openDeleteModal(college)"
-              class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition duration-200"
-            >
-              حذف
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!isLoading && colleges.length === 0" class="text-center py-8">
-        <p class="text-gray-500">لا توجد كليات</p>
       </div>
     </div>
   </div>

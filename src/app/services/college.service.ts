@@ -7,6 +7,7 @@ export interface College {
   id: number;
   name: string;
   description?: string;
+  studentCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -14,7 +15,15 @@ export interface College {
 export interface CollegesResponse {
   success: boolean;
   message: string;
-  data: College[];
+  data: {
+    colleges: College[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
 }
 
 export interface CollegeResponse {
@@ -31,8 +40,8 @@ export class CollegeService {
 
   constructor(private http: HttpClient) {}
 
-  getAllColleges(): Observable<CollegesResponse> {
-    return this.http.get<CollegesResponse>(this.apiUrl);
+  getAllColleges(page: number = 1, limit: number = 10): Observable<CollegesResponse> {
+    return this.http.get<CollegesResponse>(`${this.apiUrl}?page=${page}&limit=${limit}`);
   }
 
   getCollegeById(id: number): Observable<CollegeResponse> {

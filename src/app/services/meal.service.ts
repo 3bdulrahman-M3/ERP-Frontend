@@ -31,7 +31,15 @@ export interface KitchenStatus {
 export interface MealsResponse {
   success: boolean;
   message: string;
-  data: Meal[];
+  data: {
+    meals: Meal[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
 }
 
 export interface MealResponse {
@@ -54,8 +62,8 @@ export class MealService {
 
   constructor(private http: HttpClient) {}
 
-  getAllMeals(): Observable<MealsResponse> {
-    return this.http.get<MealsResponse>(this.apiUrl);
+  getAllMeals(page: number = 1, limit: number = 10): Observable<MealsResponse> {
+    return this.http.get<MealsResponse>(`${this.apiUrl}?page=${page}&limit=${limit}`);
   }
 
   getMealById(id: number): Observable<MealResponse> {

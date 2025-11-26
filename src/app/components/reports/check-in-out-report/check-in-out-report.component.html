@@ -1,0 +1,190 @@
+<app-layout pageTitle="سجل الدخول والخروج">
+  <div class="p-4 space-y-3">
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg shadow-md p-4 text-white">
+      <h2 class="text-xl font-bold mb-2 flex items-center">
+        <span class="mr-2 text-2xl">📊</span>
+        سجل الدخول والخروج
+      </h2>
+      <p class="text-sm text-white/90">عرض جميع سجلات الدخول والخروج للطلاب</p>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <h3 class="text-base font-bold text-gray-800 mb-3">البحث والفلترة</h3>
+      
+      <div class="space-y-3 mb-3">
+        <!-- Search Section -->
+        <div class="relative">
+          <label class="block text-xs font-medium text-gray-700 mb-1">البحث عن طالب</label>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="onSearchInput()"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+            placeholder="اكتب اسم الطالب..."
+            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          />
+          
+          <!-- Autocomplete Suggestions -->
+          <div 
+            *ngIf="showSuggestions && searchResults.length > 0" 
+            class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-xl max-h-40 overflow-y-auto"
+          >
+            <div 
+              *ngFor="let student of searchResults"
+              (click)="selectStudent(student)"
+              class="px-3 py-1.5 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-sm"
+            >
+              <div class="font-semibold text-gray-900">{{ student.name }}</div>
+              <div class="text-xs text-gray-500">{{ student.email }}</div>
+              <div class="text-xs text-gray-400">
+                <span *ngIf="student.college">{{ student.college.name }}</span>
+                <span *ngIf="student.college && student.year"> - </span>
+                <span *ngIf="student.year">الفرقة {{ student.year }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Selected Student Info -->
+        <div *ngIf="selectedStudent" class="p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-semibold text-sm text-gray-900">{{ selectedStudent.name }}</p>
+              <p class="text-xs text-gray-600">{{ selectedStudent.email }}</p>
+              <p class="text-xs text-gray-500">
+                <span *ngIf="selectedStudent.college">{{ selectedStudent.college.name }}</span>
+                <span *ngIf="selectedStudent.college && selectedStudent.year"> - </span>
+                <span *ngIf="selectedStudent.year">الفرقة {{ selectedStudent.year }}</span>
+              </p>
+            </div>
+            <button
+              (click)="selectedStudent = null; searchQuery = ''; loadRecords()"
+              class="px-3 py-1.5 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              إلغاء
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">التاريخ</label>
+            <input
+              type="date"
+              [(ngModel)]="selectedDate"
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1">الحالة</label>
+            <select
+              [(ngModel)]="selectedStatus"
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">الكل</option>
+              <option value="checked_in">داخل</option>
+              <option value="checked_out">خارج</option>
+            </select>
+          </div>
+          <div class="flex items-end gap-2">
+            <button
+              (click)="applyFilters()"
+              class="flex-1 bg-blue-600 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              تطبيق
+            </button>
+            <button
+              (click)="resetFilters()"
+              class="flex-1 bg-gray-300 text-gray-700 px-3 py-1.5 text-sm rounded-lg hover:bg-gray-400 transition-colors"
+            >
+              إعادة تعيين
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <div *ngIf="isLoading" class="text-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+        <p class="text-sm text-gray-500">جاري التحميل...</p>
+      </div>
+
+      <div *ngIf="!isLoading && records.length > 0" class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">الطالب</th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">التاريخ</th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">وقت الدخول</th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">وقت الخروج</th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let record of records" class="hover:bg-blue-50">
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">{{ record.student?.name || record.student?.user?.name || 'غير معروف' }}</div>
+                <div class="text-xs text-gray-500">{{ record.student?.email || record.student?.user?.email }}</div>
+                <ng-container *ngIf="record.student">
+                  <div class="text-xs text-gray-400">
+                    <span *ngIf="record.student.college">{{ record.student.college.name }}</span>
+                    <span *ngIf="record.student.college && record.student.year"> - </span>
+                    <span *ngIf="record.student.year">الفرقة {{ record.student.year }}</span>
+                  </div>
+                </ng-container>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                {{ formatDate(record.date) }}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                {{ formatDateTime(record.checkInTime) }}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                {{ formatDateTime(record.checkOutTime) }}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span [class]="'px-2 py-1 rounded-full text-xs font-semibold flex items-center ' + getStatusBadgeClass(record.status)">
+                  <span class="w-2 h-2 rounded-full mr-1" [class]="record.status === 'checked_in' ? 'bg-green-500' : 'bg-red-500'"></span>
+                  {{ getStatusText(record.status) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="!isLoading && records.length === 0" class="text-center py-8 text-gray-500">
+        <span class="text-4xl mb-2 block">😔</span>
+        <p class="text-sm">لا توجد سجلات لعرضها.</p>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!isLoading && totalPages > 1" class="mt-4 flex items-center justify-center gap-2">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+        >
+          السابق
+        </button>
+        <span class="px-3 py-1.5 text-sm text-gray-700">
+          صفحة {{ currentPage }} من {{ totalPages }}
+        </span>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+        >
+          التالي
+        </button>
+      </div>
+    </div>
+  </div>
+</app-layout>
+
