@@ -40,11 +40,15 @@
     <div class="mb-6 flex items-start space-x-6 space-x-reverse">
       <div class="flex-shrink-0">
         <img 
-          [src]="student.profileImage || 'https://via.placeholder.com/150?text=No+Image'" 
+          *ngIf="getProfileImage()"
+          [src]="getProfileImageUrl()" 
           [alt]="student.name"
           class="h-32 w-32 rounded-full object-cover border-4 border-gray-200 shadow-lg"
           onerror="this.src='https://via.placeholder.com/150?text=No+Image'"
         />
+        <div *ngIf="!getProfileImage()" class="h-32 w-32 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center border-4 border-gray-200 shadow-lg">
+          <span class="text-4xl font-bold text-white">{{ student.name.charAt(0) || 'U' }}</span>
+        </div>
       </div>
       <div class="flex-1">
         <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ student.name }}</h2>
@@ -141,7 +145,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-500 mb-1">المبنى</label>
-            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.building || 'غير محدد' }}</p>
+            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.buildingInfo?.name || assignment.room?.building || 'غير محدد' }}</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الدخول</label>
@@ -150,96 +154,6 @@
           <div *ngIf="assignment.checkOutDate">
             <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الخروج</label>
             <p class="text-lg text-gray-900">{{ assignment.checkOutDate | date: 'yyyy-MM-dd' }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Kitchen Status -->
-    <div class="mt-8 pt-8 border-t border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">حالة المطبخ والوجبات</h3>
-      
-      <!-- Current Time -->
-      <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">الساعة الحالية</label>
-            <p class="text-2xl font-bold text-gray-900 font-mono">{{ currentTime }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Kitchen Status -->
-      <div *ngIf="kitchenStatus" class="space-y-4">
-        <!-- Kitchen Open -->
-        <div *ngIf="kitchenStatus.isOpen && kitchenStatus.currentMeal" class="bg-green-50 border-2 border-green-200 rounded-lg p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center space-x-2 space-x-reverse">
-              <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <h4 class="text-xl font-bold text-green-800">المطبخ مفتوح</h4>
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-600 mb-1">الوجبة الحالية</label>
-              <p class="text-lg font-semibold text-gray-900">{{ getMealName(kitchenStatus.currentMeal.name) }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-600 mb-1">وقت البدء</label>
-              <p class="text-lg text-gray-900">{{ formatTime(kitchenStatus.currentMeal.startTime) }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-600 mb-1">وقت الانتهاء</label>
-              <p class="text-lg text-gray-900">{{ formatTime(kitchenStatus.currentMeal.endTime) }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Kitchen Closed -->
-        <div *ngIf="!kitchenStatus.isOpen" class="bg-red-50 border-2 border-red-200 rounded-lg p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center space-x-2 space-x-reverse">
-              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-              <h4 class="text-xl font-bold text-red-800">المطبخ مغلق</h4>
-            </div>
-          </div>
-          
-          <!-- Next Meal Info -->
-          <div *ngIf="kitchenStatus.nextMeal" class="mb-4">
-            <label class="block text-sm font-medium text-gray-600 mb-2">الوجبة القادمة</label>
-            <div class="bg-white rounded-lg p-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-xs text-gray-500 mb-1">نوع الوجبة</label>
-                  <p class="text-lg font-semibold text-gray-900">{{ getMealName(kitchenStatus.nextMeal.name) }}</p>
-                </div>
-                <div>
-                  <label class="block text-xs text-gray-500 mb-1">وقت البدء</label>
-                  <p class="text-lg text-gray-900">{{ formatTime(kitchenStatus.nextMeal.startTime) }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Countdown Timer -->
-          <div *ngIf="countdown" class="bg-white rounded-lg p-4">
-            <label class="block text-sm font-medium text-gray-600 mb-2">الوقت المتبقي للوجبة القادمة</label>
-            <div class="flex items-center justify-center space-x-4 space-x-reverse">
-              <div class="text-center">
-                <div class="text-3xl font-bold text-blue-600 font-mono">{{ countdown.hours.toString().padStart(2, '0') }}</div>
-                <div class="text-xs text-gray-500 mt-1">ساعة</div>
-              </div>
-              <div class="text-3xl font-bold text-gray-400">:</div>
-              <div class="text-center">
-                <div class="text-3xl font-bold text-blue-600 font-mono">{{ countdown.minutes.toString().padStart(2, '0') }}</div>
-                <div class="text-xs text-gray-500 mt-1">دقيقة</div>
-              </div>
-              <div class="text-3xl font-bold text-gray-400">:</div>
-              <div class="text-center">
-                <div class="text-3xl font-bold text-blue-600 font-mono">{{ countdown.seconds.toString().padStart(2, '0') }}</div>
-                <div class="text-xs text-gray-500 mt-1">ثانية</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

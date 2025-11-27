@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { RoomService, CreateRoomRequest, UpdateRoomRequest } from '../../../services/room.service';
 import { ServiceService, Service } from '../../../services/service.service';
+import { BuildingService, Building } from '../../../services/building.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 
 @Component({
   selector: 'app-room-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, LayoutComponent],
+  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent],
   templateUrl: './room-form.component.html',
   styleUrl: './room-form.component.css'
 })
@@ -20,14 +21,14 @@ export class RoomFormComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  buildings = ['A', 'B', 'C'];
+  buildings: Building[] = [];
   services: Service[] = [];
   selectedServiceIds: number[] = [];
 
   formData = {
     roomNumber: '',
     floor: null as number | null,
-    building: '',
+    buildingId: null as number | null,
     totalBeds: null as number | null,
     roomType: 'shared' as 'single' | 'shared',
     roomPrice: null as number | null,
@@ -39,18 +40,42 @@ export class RoomFormComponent implements OnInit {
   constructor(
     private roomService: RoomService,
     private serviceService: ServiceService,
+    private buildingService: BuildingService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.loadServices();
+    this.loadBuildings();
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isEditMode = true;
       this.roomId = +id;
       this.loadRoom();
     }
+  }
+
+  loadBuildings() {
+    console.log('Loading buildings...');
+    // Get all buildings without pagination (use large limit)
+    this.buildingService.getAllBuildings(1, 1000).subscribe({
+      next: (response) => {
+        console.log('Buildings API response:', response);
+        if (response.success && response.data && response.data.buildings) {
+          this.buildings = response.data.buildings;
+          console.log('Buildings loaded successfully:', this.buildings);
+        } else {
+          console.error('Invalid response structure:', response);
+          this.errorMessage = 'فشل تحميل قائمة المباني';
+        }
+      },
+      error: (error) => {
+        console.error('Error loading buildings:', error);
+        console.error('Error details:', error.error);
+        this.errorMessage = 'فشل تحميل قائمة المباني: ' + (error.error?.message || error.message);
+      }
+    });
   }
 
   loadServices() {
@@ -79,7 +104,7 @@ export class RoomFormComponent implements OnInit {
           this.formData = {
             roomNumber: room.roomNumber,
             floor: room.floor,
-            building: room.building || '',
+            buildingId: room.buildingId || null,
             totalBeds: room.totalBeds,
             roomType: room.roomType || 'shared',
             roomPrice: room.roomPrice ? parseFloat(room.roomPrice.toString()) : null,
@@ -111,7 +136,7 @@ export class RoomFormComponent implements OnInit {
       const updateData: UpdateRoomRequest = {
         roomNumber: this.formData.roomNumber,
         floor: this.formData.floor || undefined,
-        building: this.formData.building || undefined,
+        buildingId: this.formData.buildingId || undefined,
         totalBeds: this.formData.totalBeds!,
         roomType: this.formData.roomType,
         roomPrice: this.formData.roomPrice || undefined,
@@ -140,7 +165,7 @@ export class RoomFormComponent implements OnInit {
       const createData: CreateRoomRequest = {
         roomNumber: this.formData.roomNumber,
         floor: this.formData.floor || undefined,
-        building: this.formData.building || undefined,
+        buildingId: this.formData.buildingId || undefined,
         totalBeds: this.formData.totalBeds!,
         roomType: this.formData.roomType,
         roomPrice: this.formData.roomPrice || undefined,

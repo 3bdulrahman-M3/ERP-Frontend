@@ -1,0 +1,78 @@
+<div class="relative z-50">
+  <!-- Notification Bell Icon -->
+  <button
+    (click)="toggleDropdown()"
+    class="relative p-3 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white/50"
+  >
+    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+    </svg>
+    <!-- Unread Badge -->
+    <span
+      *ngIf="unreadCount > 0"
+      class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold animate-pulse"
+    >
+      {{ unreadCount > 9 ? '9+' : unreadCount }}
+    </span>
+  </button>
+
+  <!-- Dropdown -->
+  <div
+    *ngIf="isOpen"
+    class="absolute right-0 top-full mt-3 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 max-h-96 flex flex-col"
+    style="direction: rtl; z-index: 99999;"
+  >
+    <!-- Header -->
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+      <h3 class="font-semibold text-gray-900">الإشعارات</h3>
+      <div class="flex items-center gap-2">
+        <button
+          *ngIf="unreadCount > 0"
+          (click)="markAllAsRead()"
+          class="text-xs text-blue-600 hover:text-blue-700"
+        >
+          قراءة الكل
+        </button>
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="flex-1 overflow-y-auto">
+      <div *ngIf="isLoading" class="p-4 text-center text-gray-500">
+        جاري التحميل...
+      </div>
+      
+      <div *ngIf="!isLoading && notifications.length === 0" class="p-4 text-center text-gray-500">
+        لا توجد إشعارات
+      </div>
+
+      <div *ngFor="let notification of notifications" 
+           (click)="handleNotificationClick(notification)"
+           [class.bg-blue-50]="!notification.isRead"
+           [class.bg-white]="notification.isRead"
+           class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors relative">
+        <div class="flex items-start gap-3">
+          <div class="text-2xl flex-shrink-0">
+            {{ getNotificationIcon(notification.type) }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-semibold text-gray-900 text-sm mb-1">{{ notification.title }}</h4>
+            <p class="text-xs text-gray-600 mb-2">{{ notification.message }}</p>
+            <p class="text-xs text-gray-400">{{ formatTime(notification.createdAt) }}</p>
+          </div>
+          <button
+            (click)="deleteNotification(notification, $event)"
+            class="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <!-- Unread Indicator -->
+        <div *ngIf="!notification.isRead" class="absolute top-4 left-4 w-2 h-2 bg-blue-600 rounded-full"></div>
+      </div>
+    </div>
+  </div>
+</div>
+

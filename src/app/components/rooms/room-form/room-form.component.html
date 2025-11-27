@@ -96,20 +96,27 @@
 
       <!-- Building -->
       <div>
-        <label for="building" class="block text-sm font-bold text-gray-700 mb-2">
+        <label for="buildingId" class="block text-sm font-bold text-gray-700 mb-2">
           المبنى
         </label>
         <select
-          id="building"
-          [(ngModel)]="formData.building"
-          name="building"
+          id="buildingId"
+          [(ngModel)]="formData.buildingId"
+          name="buildingId"
           class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         >
-          <option [value]="''">-- اختر المبنى --</option>
-          <option *ngFor="let building of buildings" [value]="building">
-            مبنى {{ building }}
+          <option [ngValue]="null">-- اختر المبنى --</option>
+          <option *ngFor="let building of buildings" [ngValue]="building.id">
+            {{ building.name }}
           </option>
         </select>
+        <p *ngIf="buildings.length === 0" class="text-xs text-gray-500 mt-1">
+          لا توجد مباني متاحة. يرجى إضافة مباني من <a routerLink="/dashboard/buildings" class="text-blue-600 hover:underline">صفحة المباني</a> أولاً.
+        </p>
+        <!-- Debug info (remove in production) -->
+        <p *ngIf="buildings.length > 0" class="text-xs text-gray-400 mt-1">
+          عدد المباني المتاحة: {{ buildings.length }}
+        </p>
       </div>
 
       <!-- Room Price (for single rooms) -->

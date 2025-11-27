@@ -154,14 +154,30 @@
             </div>
           </div>
         </div>
+        
+        <!-- Current Meal Info -->
+        <ng-container *ngIf="!isLoadingKitchen && kitchenStatus?.isOpen && kitchenStatus?.currentMeal as currentMeal">
+          <div class="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
+            <p class="text-xs text-gray-600 mb-1">الوجبة الحالية</p>
+            <p class="text-sm font-bold text-gray-900 mb-1">
+              {{ mealNames[currentMeal.name] || currentMeal.name }}
+            </p>
+            <p class="text-xs text-gray-600">
+              من {{ formatTime12Hour(currentMeal.startTime) }} إلى {{ formatTime12Hour(currentMeal.endTime) }}
+            </p>
+          </div>
+        </ng-container>
         <div class="grid grid-cols-2 gap-2">
           <!-- Countdown Timer -->
           <div *ngIf="currentUser?.role === 'student' && (countdownTimer || isLoadingKitchen)" class="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-2.5 text-white">
-            <p class="text-xs font-semibold mb-1.5 text-center">العد التنازلي للوجبة القادمة</p>
+            <p class="text-xs font-semibold mb-1.5 text-center">
+              <span *ngIf="kitchenStatus?.isOpen">العد التنازلي لإغلاق المطبخ</span>
+              <span *ngIf="!kitchenStatus?.isOpen">العد التنازلي للوجبة القادمة</span>
+            </p>
             <div *ngIf="isLoadingKitchen" class="text-center py-2">
               <p class="text-xs opacity-90">جاري التحميل...</p>
             </div>
-            <div *ngIf="!isLoadingKitchen && countdownTimer" class="flex items-center justify-center gap-1.5">
+            <div *ngIf="!isLoadingKitchen && countdownTimer" class="flex items-center justify-center gap-1.5" style="direction: ltr;">
               <div class="text-center">
                 <p class="text-base font-bold">{{ padNumber(countdownTimer.hours) }}</p>
                 <p class="text-xs opacity-90">ساعة</p>
@@ -183,9 +199,9 @@
           </div>
           <div *ngIf="nextMealTime" class="bg-gray-50 rounded-lg p-2">
             <p class="text-xs text-gray-500 mb-1">
-              <span *ngIf="kitchenStatus?.isOpen">إغلاق</span>
+              <span *ngIf="kitchenStatus?.isOpen">وقت إغلاق المطبخ</span>
               <ng-container *ngIf="!kitchenStatus?.isOpen && kitchenStatus?.nextMeal as nextMeal">
-                <span>{{ mealNames[nextMeal.name] }}</span>
+                <span>معاد {{ mealNames[nextMeal.name] }}</span>
               </ng-container>
             </p>
             <p class="text-sm font-bold text-gray-800">{{ nextMealTime }}</p>
@@ -195,5 +211,8 @@
     </div>
   </div>
 </div>
+
+<!-- Chat Widget for Students -->
+<app-chat-widget *ngIf="currentUser?.role === 'student'"></app-chat-widget>
 </app-layout>
 

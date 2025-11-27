@@ -60,6 +60,12 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
+    path: 'dashboard/available-rooms',
+    loadComponent: () => import('./components/rooms/available-rooms/available-rooms.component').then(m => m.AvailableRoomsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'student' }
+  },
+  {
     path: 'dashboard/rooms',
     loadComponent: () => import('./components/rooms/rooms-list/rooms-list.component').then(m => m.RoomsListComponent),
     canActivate: [authGuard, roleGuard],
@@ -118,6 +124,28 @@ export const routes: Routes = [
     loadComponent: () => import('./components/services/services-list/services-list.component').then(m => m.ServicesListComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/buildings',
+    loadComponent: () => import('./components/buildings/buildings-list/buildings-list.component').then(m => m.BuildingsListComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/chat',
+    loadComponent: () => import('./components/chat/chat.component').then(m => m.ChatComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'dashboard/settings',
+    loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'dashboard/preferences',
+    loadComponent: () => import('./components/preferences/preferences.component').then(m => m.PreferencesComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'student' }
   },
   {
     path: 'unauthorized',

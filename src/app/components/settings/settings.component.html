@@ -1,0 +1,191 @@
+<app-layout [pageTitle]="'الإعدادات'">
+  <div class="p-6 animate-fade-in">
+    <!-- Header -->
+    <div class="mb-6">
+      <h2 class="text-4xl font-bold gradient-text">الحساب الشخصي</h2>
+      <p class="text-gray-600 mt-2">قم بتحديث معلومات حسابك الشخصي</p>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl animate-scale-in">
+      <p class="text-sm text-green-600">{{ successMessage }}</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-scale-in">
+      <p class="text-sm text-red-600">{{ errorMessage }}</p>
+    </div>
+
+    <!-- Form -->
+    <form (ngSubmit)="onSubmit()" class="bg-white rounded-2xl shadow-xl p-8 animate-slide-up">
+      <!-- Profile Image -->
+      <div class="mb-6 pb-6 border-b border-gray-200">
+        <label class="block text-sm font-bold text-gray-700 mb-4">
+          الصورة الشخصية
+        </label>
+        <div class="flex items-center gap-6">
+          <!-- Image Preview -->
+          <div class="relative">
+            <img
+              *ngIf="formData.profileImage"
+              [src]="formData.profileImage"
+              alt="Profile Image"
+              class="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-lg"
+            />
+            <div
+              *ngIf="!formData.profileImage"
+              class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-4xl shadow-lg"
+            >
+              {{ currentUser?.name?.charAt(0) || 'U' }}
+            </div>
+            <!-- Delete Button -->
+            <button
+              *ngIf="formData.profileImage"
+              type="button"
+              (click)="deleteProfileImage()"
+              class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Upload Button -->
+          <div>
+            <label
+              for="profileImageFile"
+              [class.opacity-50]="uploadingProfileImage"
+              [class.cursor-not-allowed]="uploadingProfileImage"
+              class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors cursor-pointer"
+            >
+              <input
+                type="file"
+                id="profileImageFile"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                (change)="onProfileImageSelected($event)"
+                [disabled]="uploadingProfileImage"
+                class="hidden"
+              />
+              <span *ngIf="!uploadingProfileImage" class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                {{ formData.profileImage ? 'تغيير الصورة' : 'اختر صورة شخصية' }}
+              </span>
+              <span *ngIf="uploadingProfileImage" class="flex items-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                جاري الرفع...
+              </span>
+            </label>
+            <p class="text-xs text-gray-500 mt-2">يُسمح بملفات الصور فقط (JPEG, JPG, PNG, GIF, WEBP) - الحد الأقصى 5MB</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Name -->
+        <div>
+          <label for="name" class="block text-sm font-bold text-gray-700 mb-2">
+            الاسم <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="name"
+            type="text"
+            [(ngModel)]="formData.name"
+            name="name"
+            required
+            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            placeholder="أدخل اسمك"
+          />
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-bold text-gray-700 mb-2">
+            البريد الإلكتروني <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="formData.email"
+            name="email"
+            required
+            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            placeholder="example@email.com"
+          />
+        </div>
+
+        <!-- Current Password -->
+        <div>
+          <label for="currentPassword" class="block text-sm font-bold text-gray-700 mb-2">
+            كلمة المرور الحالية
+          </label>
+          <input
+            id="currentPassword"
+            type="password"
+            [(ngModel)]="formData.currentPassword"
+            name="currentPassword"
+            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            placeholder="أدخل كلمة المرور الحالية (للتغيير فقط)"
+          />
+          <p class="text-xs text-gray-500 mt-1">اتركه فارغاً إذا لم ترد تغيير كلمة المرور</p>
+        </div>
+
+        <!-- New Password -->
+        <div>
+          <label for="newPassword" class="block text-sm font-bold text-gray-700 mb-2">
+            كلمة المرور الجديدة
+          </label>
+          <input
+            id="newPassword"
+            type="password"
+            [(ngModel)]="formData.newPassword"
+            name="newPassword"
+            minlength="6"
+            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            placeholder="أدخل كلمة المرور الجديدة"
+          />
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="md:col-span-2">
+          <label for="confirmPassword" class="block text-sm font-bold text-gray-700 mb-2">
+            تأكيد كلمة المرور الجديدة
+          </label>
+          <input
+            id="confirmPassword"
+            type="password"
+            [(ngModel)]="formData.confirmPassword"
+            name="confirmPassword"
+            minlength="6"
+            class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            placeholder="أعد إدخال كلمة المرور الجديدة"
+          />
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="mt-8 flex items-center justify-end space-x-4 space-x-reverse">
+        <button
+          type="submit"
+          [disabled]="isLoading"
+          class="btn-primary px-6 py-3 text-white rounded-xl font-bold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x-reverse"
+        >
+          <span *ngIf="!isLoading">حفظ التغييرات</span>
+          <span *ngIf="isLoading" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            جاري الحفظ...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</app-layout>
+

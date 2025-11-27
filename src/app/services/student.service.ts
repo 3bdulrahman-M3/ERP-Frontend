@@ -36,6 +36,12 @@ export interface Student {
       id: number;
       roomNumber: string;
       building?: string;
+      buildingId?: number;
+      buildingInfo?: {
+        id: number;
+        name: string;
+        address?: string;
+      };
     };
   }>;
   user?: {
@@ -44,6 +50,7 @@ export interface Student {
     email: string;
     role: string;
     isActive: boolean;
+    profileImage?: string;
   };
 }
 

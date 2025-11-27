@@ -8,6 +8,7 @@ import { RoomService } from '../../services/room.service';
 import { MealService, KitchenStatus } from '../../services/meal.service';
 import { CheckInOutService } from '../../services/check-in-out.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
+import { ChatWidgetComponent } from '../chat/chat-widget.component';
 import { formatTime12Hour, getCurrentTime12HourShort } from '../../utils/time.util';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -15,7 +16,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, LayoutComponent],
+  imports: [CommonModule, RouterModule, LayoutComponent, ChatWidgetComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -303,12 +304,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return num.toString().padStart(2, '0');
   }
 
+  formatTime12Hour(time: string): string {
+    return formatTime12Hour(time);
+  }
+
   updateNextMealTime() {
-    if (this.kitchenStatus?.nextMeal) {
-      this.nextMealTime = formatTime12Hour(this.kitchenStatus.nextMeal.startTime);
-    } else if (this.kitchenStatus?.currentMeal) {
+    if (this.kitchenStatus?.isOpen && this.kitchenStatus?.currentMeal) {
       // If kitchen is open, show when it closes
       this.nextMealTime = formatTime12Hour(this.kitchenStatus.currentMeal.endTime);
+    } else if (this.kitchenStatus?.nextMeal) {
+      // If kitchen is closed, show next meal time
+      this.nextMealTime = formatTime12Hour(this.kitchenStatus.nextMeal.startTime);
     } else {
       this.nextMealTime = '';
     }
@@ -326,9 +332,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     // If kitchen is open, countdown to when it closes
     if (this.kitchenStatus.isOpen && this.kitchenStatus.currentMeal) {
-      const [hours, minutes] = this.kitchenStatus.currentMeal.endTime.split(':').map(Number);
+      const endTimeStr = this.kitchenStatus.currentMeal.endTime;
+      const [hours, minutes, seconds] = endTimeStr.split(':').map(Number);
       targetTime = new Date();
-      targetTime.setHours(hours, minutes, 0, 0);
+      targetTime.setHours(hours || 0, minutes || 0, seconds || 0, 0);
       
       // If the target time is earlier today, it means it's tomorrow
       if (targetTime <= now) {
@@ -336,9 +343,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     } else if (this.kitchenStatus.nextMeal) {
       // If kitchen is closed, countdown to next meal
-      const [hours, minutes] = this.kitchenStatus.nextMeal.startTime.split(':').map(Number);
+      const startTimeStr = this.kitchenStatus.nextMeal.startTime;
+      const [hours, minutes, seconds] = startTimeStr.split(':').map(Number);
       targetTime = new Date();
-      targetTime.setHours(hours, minutes, 0, 0);
+      targetTime.setHours(hours || 0, minutes || 0, seconds || 0, 0);
       
       // If the target time is earlier today, it means it's tomorrow
       if (targetTime <= now) {
@@ -363,5 +371,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.countdownTimer = null;
     }
   }
+
 }
 

@@ -41,7 +41,16 @@ export interface Room {
   id: number;
   roomNumber: string;
   floor: number | null;
-  building: string | null;
+  building: string | null; // Old field for backward compatibility
+  buildingId?: number | null;
+  buildingInfo?: {
+    id: number;
+    name: string;
+    address?: string;
+    latitude?: number | string;
+    longitude?: number | string;
+    floors?: number;
+  } | null;
   totalBeds: number;
   availableBeds: number;
   status: 'available' | 'occupied' | 'maintenance' | 'reserved';
@@ -50,6 +59,9 @@ export interface Room {
   bedPrice?: number | string;
   description: string | null;
   occupiedBeds?: number;
+  hasPendingRequest?: boolean;
+  requestStatus?: 'pending' | 'accepted' | 'rejected' | null;
+  pendingRequestsCount?: number;
   createdAt: string;
   updatedAt: string;
   roomStudents?: RoomStudent[];
@@ -59,12 +71,34 @@ export interface Room {
     description?: string;
     icon?: string;
   }>;
+  requests?: Array<{
+    id: number;
+    roomId: number;
+    studentId: number;
+    status: 'pending' | 'accepted' | 'rejected';
+    notes?: string | null;
+    createdAt: string;
+    student?: {
+      id: number;
+      name: string;
+      email: string;
+      user?: {
+        id: number;
+        name: string;
+        email: string;
+      };
+      college?: {
+        id: number;
+        name: string;
+      };
+    };
+  }>;
 }
 
 export interface CreateRoomRequest {
   roomNumber: string;
   floor?: number;
-  building?: string;
+  buildingId?: number;
   totalBeds: number;
   roomType?: 'single' | 'shared';
   roomPrice?: number;
@@ -77,7 +111,7 @@ export interface CreateRoomRequest {
 export interface UpdateRoomRequest {
   roomNumber?: string;
   floor?: number;
-  building?: string;
+  buildingId?: number;
   totalBeds?: number;
   roomType?: 'single' | 'shared';
   roomPrice?: number;

@@ -1,11 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { StudentService, Student } from '../../../services/student.service';
-import { MealService, KitchenStatus } from '../../../services/meal.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
-import { interval, Subscription } from 'rxjs';
-import { formatTime12Hour, getCurrentTime12HourShort, formatDateTime12Hour } from '../../../utils/time.util';
+import { formatDateTime12Hour } from '../../../utils/time.util';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-student-detail',
@@ -14,25 +13,14 @@ import { formatTime12Hour, getCurrentTime12HourShort, formatDateTime12Hour } fro
   templateUrl: './student-detail.component.html',
   styleUrl: './student-detail.component.css'
 })
-export class StudentDetailComponent implements OnInit, OnDestroy {
+export class StudentDetailComponent implements OnInit {
   student: Student | null = null;
   isLoading = false;
   errorMessage = '';
-  kitchenStatus: KitchenStatus | null = null;
-  currentTime: string = '';
-  countdown: { hours: number; minutes: number; seconds: number } | null = null;
-  private timeUpdateSubscription?: Subscription;
-  private statusUpdateSubscription?: Subscription;
-
-  mealNames = {
-    breakfast: 'الإفطار',
-    lunch: 'الغداء',
-    dinner: 'العشاء'
-  };
+  apiUrl = environment.apiUrl;
 
   constructor(
     private studentService: StudentService,
-    private mealService: MealService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -42,86 +30,6 @@ export class StudentDetailComponent implements OnInit, OnDestroy {
     if (id) {
       this.loadStudent(+id);
     }
-    this.loadKitchenStatus();
-    this.updateCurrentTime();
-    
-    // Update current time every second
-    this.timeUpdateSubscription = interval(1000).subscribe(() => {
-      this.updateCurrentTime();
-    });
-
-    // Update kitchen status every 30 seconds
-    this.statusUpdateSubscription = interval(30000).subscribe(() => {
-      this.loadKitchenStatus();
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.timeUpdateSubscription) {
-      this.timeUpdateSubscription.unsubscribe();
-    }
-    if (this.statusUpdateSubscription) {
-      this.statusUpdateSubscription.unsubscribe();
-    }
-  }
-
-  updateCurrentTime() {
-    this.currentTime = getCurrentTime12HourShort();
-    
-    // Update countdown if kitchen is closed
-    if (this.kitchenStatus && !this.kitchenStatus.isOpen && this.kitchenStatus.timeUntilNextMeal) {
-      this.updateCountdown();
-    }
-  }
-
-  updateCountdown() {
-    if (!this.kitchenStatus || !this.kitchenStatus.timeUntilNextMeal || !this.kitchenStatus.nextMeal) {
-      this.countdown = null;
-      return;
-    }
-
-    const now = new Date();
-    const [nextH, nextM] = this.kitchenStatus.nextMeal.startTime.split(':').map(Number);
-    const nextTime = new Date(now);
-    nextTime.setHours(nextH, nextM, 0, 0);
-
-    // If next meal is tomorrow
-    if (nextTime <= now) {
-      nextTime.setDate(nextTime.getDate() + 1);
-    }
-
-    const diff = nextTime.getTime() - now.getTime();
-    const totalSeconds = Math.floor(diff / 1000);
-    
-    if (totalSeconds <= 0) {
-      this.countdown = null;
-      this.loadKitchenStatus(); // Reload status
-      return;
-    }
-
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    this.countdown = { hours, minutes, seconds };
-  }
-
-  loadKitchenStatus() {
-    this.mealService.getKitchenStatus().subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.kitchenStatus = response.data;
-          if (!this.kitchenStatus.isOpen && this.kitchenStatus.timeUntilNextMeal) {
-            this.updateCountdown();
-          } else {
-            this.countdown = null;
-          }
-        }
-      },
-      error: (error) => {
-        console.error('Error loading kitchen status:', error);
-      }
-    });
   }
 
   loadStudent(id: number) {
@@ -176,16 +84,26 @@ export class StudentDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard/students']);
   }
 
-  getMealName(name: string): string {
-    return this.mealNames[name as keyof typeof this.mealNames] || name;
-  }
-
-  formatTime(time: string): string {
-    return formatTime12Hour(time);
-  }
-
   formatDateTime(date: string | Date): string {
     return formatDateTime12Hour(date);
+  }
+
+  getProfileImage(): string | null {
+    // Try user profileImage first, then student profileImage
+    return this.student?.user?.profileImage || this.student?.profileImage || null;
+  }
+
+  getProfileImageUrl(): string {
+    const profileImage = this.getProfileImage();
+    if (!profileImage) {
+      return 'https://via.placeholder.com/150?text=No+Image';
+    }
+    // If it's already a full URL, return it as is
+    if (profileImage.startsWith('http')) {
+      return profileImage;
+    }
+    // Otherwise, construct the full URL
+    return `${this.apiUrl}/uploads/${profileImage}`;
   }
 }
 

@@ -45,9 +45,9 @@
           [(ngModel)]="buildingFilter"
           class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
         >
-          <option value="">الكل</option>
-          <option *ngFor="let building of buildings" [value]="building">
-            مبنى {{ building }}
+          <option [value]="null">الكل</option>
+          <option *ngFor="let building of buildings" [value]="building.id">
+            {{ building.name }}
           </option>
         </select>
       </div>
@@ -96,8 +96,11 @@
       <div class="flex justify-between items-start mb-3">
         <div>
           <h3 class="text-lg font-bold text-gray-800 mb-1">غرفة {{ room.roomNumber }}</h3>
-          <p class="text-xs text-gray-600" *ngIf="room.building">
-            {{ room.building }} - الطابق {{ room.floor }}
+          <p class="text-xs text-gray-600" *ngIf="room.buildingInfo">
+            {{ room.buildingInfo.name }}<span *ngIf="room.floor"> - الطابق {{ room.floor }}</span>
+          </p>
+          <p class="text-xs text-gray-600" *ngIf="!room.buildingInfo && room.floor">
+            الطابق {{ room.floor }}
           </p>
         </div>
         <span
@@ -120,6 +123,10 @@
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-600">الأسرة المشغولة</span>
           <span class="font-bold text-gray-800">{{ room.totalBeds - room.availableBeds }}</span>
+        </div>
+        <div *ngIf="room.pendingRequestsCount !== undefined && room.pendingRequestsCount > 0" class="flex items-center justify-between text-sm">
+          <span class="text-gray-600">طلبات قيد الانتظار</span>
+          <span class="font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">{{ room.pendingRequestsCount }}</span>
         </div>
       </div>
 

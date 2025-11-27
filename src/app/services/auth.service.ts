@@ -26,6 +26,7 @@ export interface User {
   email: string;
   role: 'admin' | 'student';
   isActive: boolean;
+  profileImage?: string;
 }
 
 @Injectable({
@@ -121,6 +122,28 @@ export class AuthService {
   isStudent(): boolean {
     const user = this.getCurrentUser();
     return user?.role === 'student';
+  }
+
+  getProfile(): Observable<{ success: boolean; data: User }> {
+    return this.http.get<{ success: boolean; data: User }>(`${this.apiUrl}/profile`).pipe(
+      tap(response => {
+        if (response.success) {
+          localStorage.setItem('user', JSON.stringify(response.data));
+          this.currentUserSubject.next(response.data);
+        }
+      })
+    );
+  }
+
+  updateProfile(updateData: { name?: string; email?: string; password?: string; profileImage?: string }): Observable<{ success: boolean; message: string; data: User }> {
+    return this.http.put<{ success: boolean; message: string; data: User }>(`${this.apiUrl}/profile`, updateData).pipe(
+      tap(response => {
+        if (response.success) {
+          localStorage.setItem('user', JSON.stringify(response.data));
+          this.currentUserSubject.next(response.data);
+        }
+      })
+    );
   }
 
   private clearAuthData(): void {

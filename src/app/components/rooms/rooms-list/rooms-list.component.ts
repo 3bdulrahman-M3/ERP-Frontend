@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RoomService, Room } from '../../../services/room.service';
+import { BuildingService, Building } from '../../../services/building.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 
 @Component({
@@ -23,17 +24,33 @@ export class RoomsListComponent implements OnInit {
 
   // Filters
   statusFilter = '';
-  buildingFilter = '';
+  buildingFilter: number | null = null;
   floorFilter: number | null = null;
-  buildings = ['A', 'B', 'C'];
+  buildings: Building[] = [];
 
   constructor(
     private roomService: RoomService,
+    private buildingService: BuildingService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    this.loadBuildings();
     this.loadRooms();
+  }
+
+  loadBuildings() {
+    // Get all buildings without pagination
+    this.buildingService.getAllBuildings(1, 1000).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.buildings = response.data.buildings;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading buildings:', error);
+      }
+    });
   }
 
   loadRooms() {
@@ -42,7 +59,7 @@ export class RoomsListComponent implements OnInit {
 
     const filters: any = {};
     if (this.statusFilter) filters.status = this.statusFilter;
-    if (this.buildingFilter) filters.building = this.buildingFilter;
+    if (this.buildingFilter) filters.buildingId = this.buildingFilter;
     if (this.floorFilter) filters.floor = this.floorFilter;
 
     this.roomService.getAllRooms(this.currentPage, this.limit, filters).subscribe({
@@ -112,7 +129,7 @@ export class RoomsListComponent implements OnInit {
 
   clearFilters() {
     this.statusFilter = '';
-    this.buildingFilter = '';
+    this.buildingFilter = null;
     this.floorFilter = null;
     this.currentPage = 1;
     this.loadRooms();

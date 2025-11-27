@@ -1,0 +1,191 @@
+<app-layout pageTitle="الغرف المتاحة">
+  <div class="p-6 animate-fade-in">
+    <!-- Header -->
+    <div class="mb-6">
+      <h2 class="text-4xl font-bold gradient-text">الغرف المتاحة</h2>
+      <p class="text-gray-600 mt-2">الغرف التي تطابق تفضيلاتك</p>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl animate-scale-in">
+      <p class="text-sm text-green-600">{{ successMessage }}</p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-scale-in">
+      <p class="text-sm text-red-600">{{ errorMessage }}</p>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Rooms Grid -->
+    <div *ngIf="!isLoading && rooms.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+      <div
+        *ngFor="let room of rooms"
+        class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 hover:shadow-2xl transition-all duration-300"
+      >
+        <!-- Room Header -->
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-1">غرفة {{ room.roomNumber }}</h3>
+            <p *ngIf="room.buildingInfo" class="text-sm text-gray-600">{{ room.buildingInfo.name }}</p>
+            <p *ngIf="room.floor !== null" class="text-sm text-gray-600">الطابق {{ room.floor }}</p>
+          </div>
+          <span
+            [class]="'px-3 py-1 rounded-full text-xs font-semibold ' + getStatusBadgeClass(room.status)"
+          >
+            {{ getStatusText(room.status) }}
+          </span>
+        </div>
+
+        <!-- Room Details -->
+        <div class="space-y-2 mb-4">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">نوع الغرفة:</span>
+            <span class="text-sm font-semibold text-gray-900">{{ getRoomTypeText(room.roomType) }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">عدد الأسرّة:</span>
+            <span class="text-sm font-semibold text-gray-900">{{ room.totalBeds }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">الأسرّة المتاحة:</span>
+            <span class="text-sm font-semibold text-gray-900">{{ room.availableBeds }}</span>
+          </div>
+          <div *ngIf="room.roomType === 'single' && room.roomPrice" class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">السعر:</span>
+            <span class="text-sm font-semibold text-green-600">{{ room.roomPrice }} جنيه</span>
+          </div>
+          <div *ngIf="room.roomType === 'shared' && room.bedPrice" class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">سعر السرير:</span>
+            <span class="text-sm font-semibold text-green-600">{{ room.bedPrice }} جنيه</span>
+          </div>
+        </div>
+
+        <!-- Services -->
+        <div *ngIf="room.services && room.services.length > 0" class="mb-4">
+          <p class="text-sm text-gray-600 mb-2">الخدمات:</p>
+          <div class="flex flex-wrap gap-2">
+            <span
+              *ngFor="let service of room.services"
+              class="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold"
+            >
+              {{ service.name }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <p *ngIf="room.description" class="text-sm text-gray-600 mb-4 line-clamp-2">{{ room.description }}</p>
+
+        <!-- Request Button -->
+        <button
+          *ngIf="!room.hasPendingRequest && room.availableBeds > 0"
+          (click)="openRequestModal(room)"
+          class="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-200"
+        >
+          تقديم طلب
+        </button>
+        <div
+          *ngIf="room.hasPendingRequest"
+          class="w-full px-4 py-2 bg-yellow-100 text-yellow-700 rounded-xl font-semibold text-center"
+        >
+          طلب قيد الانتظار
+        </div>
+        <div
+          *ngIf="room.requestStatus === 'accepted'"
+          class="w-full px-4 py-2 bg-green-100 text-green-700 rounded-xl font-semibold text-center"
+        >
+          تم قبول الطلب
+        </div>
+        <div
+          *ngIf="room.requestStatus === 'rejected'"
+          class="w-full px-4 py-2 bg-red-100 text-red-700 rounded-xl font-semibold text-center"
+        >
+          تم رفض الطلب
+        </div>
+        <div
+          *ngIf="room.availableBeds === 0"
+          class="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold text-center"
+        >
+          لا توجد أسرّة متاحة
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && rooms.length === 0" class="text-center py-12">
+      <div class="text-6xl mb-4">🏠</div>
+      <p class="text-xl text-gray-600 mb-2">لا توجد غرف متاحة</p>
+      <p class="text-sm text-gray-500">لا توجد غرف تطابق تفضيلاتك حالياً</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!isLoading && totalPages > 1" class="flex justify-center items-center gap-2 mt-6">
+      <button
+        (click)="loadRooms(currentPage - 1)"
+        [disabled]="currentPage === 1"
+        class="px-4 py-2 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        السابق
+      </button>
+      <span class="px-4 py-2 text-gray-700">
+        صفحة {{ currentPage }} من {{ totalPages }}
+      </span>
+      <button
+        (click)="loadRooms(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+        class="px-4 py-2 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        التالي
+      </button>
+    </div>
+
+    <!-- Request Modal -->
+    <div
+      *ngIf="showRequestModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      (click)="closeRequestModal()"
+    >
+      <div
+        class="bg-white rounded-2xl p-6 max-w-md w-full mx-4"
+        (click)="$event.stopPropagation()"
+      >
+        <h3 class="text-2xl font-bold text-gray-900 mb-4">تقديم طلب للغرفة</h3>
+        <div *ngIf="selectedRoom" class="mb-4">
+          <p class="text-sm text-gray-600 mb-2">الغرفة: <span class="font-semibold">{{ selectedRoom.roomNumber }}</span></p>
+          <p *ngIf="selectedRoom.buildingInfo" class="text-sm text-gray-600">المبنى: <span class="font-semibold">{{ selectedRoom.buildingInfo.name }}</span></p>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">ملاحظات (اختياري)</label>
+          <textarea
+            [(ngModel)]="requestNotes"
+            rows="4"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            placeholder="أضف أي ملاحظات إضافية..."
+          ></textarea>
+        </div>
+        <div class="flex gap-3">
+          <button
+            (click)="submitRequest()"
+            [disabled]="isLoading"
+            class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 disabled:opacity-50"
+          >
+            {{ isLoading ? 'جاري الإرسال...' : 'تقديم الطلب' }}
+          </button>
+          <button
+            (click)="closeRequestModal()"
+            [disabled]="isLoading"
+            class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200 disabled:opacity-50"
+          >
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-layout>
+
