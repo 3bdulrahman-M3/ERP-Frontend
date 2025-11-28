@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NotificationService, Notification } from '../../services/notification.service';
@@ -26,7 +26,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   constructor(
     private notificationService: NotificationService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private elementRef: ElementRef
   ) {}
 
   ngOnInit() {
@@ -52,6 +53,17 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.isOpen = !this.isOpen;
     if (this.isOpen) {
       this.loadNotifications();
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.isOpen) {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (this.elementRef.nativeElement && !this.elementRef.nativeElement.contains(target)) {
+      this.isOpen = false;
     }
   }
 

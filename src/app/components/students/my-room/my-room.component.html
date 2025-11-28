@@ -1,0 +1,82 @@
+<app-layout pageTitle="غرفتي">
+  <div class="p-6 animate-fade-in">
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage && !isLoading" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+      <p class="text-sm text-red-600">{{ errorMessage }}</p>
+    </div>
+
+    <!-- Room Information -->
+    <div *ngIf="roomData && !isLoading" class="space-y-6">
+      <!-- Room Details Card -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 animate-slide-up">
+        <h2 class="text-2xl font-bold gradient-text mb-6">معلومات الغرفة</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4">
+            <p class="text-sm text-gray-600 mb-1">رقم الغرفة</p>
+            <p class="text-2xl font-bold text-gray-800">{{ roomData.room.roomNumber }}</p>
+          </div>
+
+          <div *ngIf="roomData.room.floor" class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4">
+            <p class="text-sm text-gray-600 mb-1">الطابق</p>
+            <p class="text-2xl font-bold text-gray-800">الطابق {{ roomData.room.floor }}</p>
+          </div>
+
+          <div *ngIf="roomData.room.buildingInfo" class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
+            <p class="text-sm text-gray-600 mb-1">المبنى</p>
+            <p class="text-2xl font-bold text-gray-800">{{ roomData.room.buildingInfo.name }}</p>
+          </div>
+
+          <div *ngIf="roomData.room.buildingInfo?.mapUrl" class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4">
+            <p class="text-sm text-gray-600 mb-1">الموقع</p>
+            <button
+              (click)="openDirections()"
+              class="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2 mt-2"
+            >
+              <span>📍</span>
+              <span>افتح الاتجاهات في Google Maps</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roommates Card -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 animate-slide-up">
+        <h2 class="text-2xl font-bold gradient-text mb-6">زملاء السكن</h2>
+        
+        <div *ngIf="roomData.roommates && roomData.roommates.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            *ngFor="let roommate of roomData.roommates"
+            class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:shadow-lg transition-shadow"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl font-bold overflow-hidden">
+                <img
+                  *ngIf="roommate.profileImage"
+                  [src]="roommate.profileImage"
+                  [alt]="roommate.name"
+                  class="w-full h-full object-cover"
+                />
+                <span *ngIf="!roommate.profileImage">{{ roommate.name?.charAt(0) || '?' }}</span>
+              </div>
+              <div class="flex-1">
+                <p class="font-bold text-gray-800">{{ roommate.name }}</p>
+                <p class="text-sm text-gray-600">{{ roommate.email }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!roomData.roommates || roomData.roommates.length === 0" class="text-center py-8">
+          <p class="text-gray-500">لا يوجد زملاء سكن حالياً</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-layout>
+

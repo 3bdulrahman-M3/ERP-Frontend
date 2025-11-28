@@ -119,58 +119,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loadStatistics() {
     this.isLoadingStats = true;
 
-    // Load students count
-    this.studentService.getAllStudents(1, 1).subscribe({
-      next: (response) => {
+    // Load admin statistics from dedicated endpoint
+    this.http.get(`${environment.apiUrl}/api/dashboard/admin/statistics`).subscribe({
+      next: (response: any) => {
         if (response.success) {
-          this.totalStudents = response.data.pagination.total;
-        }
-        this.checkStatsLoaded();
-      },
-      error: () => {
-        this.checkStatsLoaded();
-      }
-    });
-
-    // Load rooms statistics
-    this.roomService.getAllRooms(1, 1).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.totalRooms = response.data.pagination.total;
-        }
-        this.loadRoomsDetails();
-      },
-      error: () => {
-        this.isLoadingStats = false;
-      }
-    });
-  }
-
-  loadRoomsDetails() {
-    // Load available rooms
-    this.roomService.getAllRooms(1, 100, { status: 'available' }).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.availableRooms = response.data.pagination.total;
-        }
-        this.loadOccupiedRooms();
-      },
-      error: () => {
-        this.isLoadingStats = false;
-      }
-    });
-  }
-
-  loadOccupiedRooms() {
-    // Load occupied rooms
-    this.roomService.getAllRooms(1, 100, { status: 'occupied' }).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.occupiedRooms = response.data.pagination.total;
+          this.totalStudents = response.data.totalStudents || 0;
+          this.totalRooms = response.data.totalRooms || 0;
+          this.availableRooms = response.data.availableRooms || 0;
+          this.occupiedRooms = response.data.occupiedRooms || 0;
         }
         this.isLoadingStats = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error loading statistics:', error);
         this.isLoadingStats = false;
       }
     });

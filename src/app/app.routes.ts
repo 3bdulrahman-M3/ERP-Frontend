@@ -114,12 +114,6 @@ export const routes: Routes = [
     data: { role: 'admin' }
   },
   {
-    path: 'dashboard/reports/student-record',
-    loadComponent: () => import('./components/reports/student-record/student-record.component').then(m => m.StudentRecordComponent),
-    canActivate: [authGuard, roleGuard],
-    data: { role: 'admin' }
-  },
-  {
     path: 'dashboard/services',
     loadComponent: () => import('./components/services/services-list/services-list.component').then(m => m.ServicesListComponent),
     canActivate: [authGuard, roleGuard],
@@ -144,6 +138,12 @@ export const routes: Routes = [
   {
     path: 'dashboard/preferences',
     loadComponent: () => import('./components/preferences/preferences.component').then(m => m.PreferencesComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'student' }
+  },
+  {
+    path: 'dashboard/my-room',
+    loadComponent: () => import('./components/students/my-room/my-room.component').then(m => m.MyRoomComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'student' }
   },

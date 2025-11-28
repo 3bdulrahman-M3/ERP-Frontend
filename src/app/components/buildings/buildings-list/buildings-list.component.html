@@ -37,6 +37,7 @@
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">العنوان</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الطوابق</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الغرف</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الطلاب</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
           </tr>
         </thead>
@@ -53,6 +54,9 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm font-semibold text-blue-600">{{ building.roomCount || 0 }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-semibold text-purple-600">{{ building.studentCount || 0 }}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex items-center space-x-2 space-x-reverse">
@@ -223,47 +227,21 @@
         ></textarea>
       </div>
 
-      <!-- Google Maps -->
+      <!-- Google Maps Link -->
       <div class="mb-4">
-        <label class="block text-sm font-bold text-gray-700 mb-1">الموقع على الخريطة</label>
-        <p class="text-xs text-gray-500 mb-2">انقر على الخريطة لتحديد الموقع أو ابحث عن العنوان</p>
-        
-        <!-- Search Box -->
+        <label for="mapUrl" class="block text-sm font-bold text-gray-700 mb-2">
+          رابط الموقع على Google Maps
+        </label>
         <input
-          id="search-map-add"
-          type="text"
-          placeholder="ابحث عن موقع..."
-          class="w-full px-3 py-2 mb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          id="mapUrl"
+          type="url"
+          [(ngModel)]="formData.mapUrl"
+          name="mapUrl"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="https://www.google.com/maps/place/..."
         />
+        <p class="text-xs text-gray-500 mt-1">انسخ رابط الموقع من Google Maps</p>
         
-        <!-- Interactive Map -->
-        <div id="map-add" class="w-full h-48 rounded-lg overflow-hidden border border-gray-300 mb-2"></div>
-        
-        <!-- Coordinates Display -->
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">خط العرض</label>
-            <input
-              type="number"
-              [(ngModel)]="formData.latitude"
-              (ngModelChange)="onCoordinatesChange()"
-              step="any"
-              class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              placeholder="30.0444"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">خط الطول</label>
-            <input
-              type="number"
-              [(ngModel)]="formData.longitude"
-              (ngModelChange)="onCoordinatesChange()"
-              step="any"
-              class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              placeholder="31.2357"
-            />
-          </div>
-        </div>
       </div>
 
       <div class="flex gap-2">
@@ -329,47 +307,21 @@
         ></textarea>
       </div>
 
-      <!-- Google Maps -->
+      <!-- Google Maps Link -->
       <div class="mb-4">
-        <label class="block text-sm font-bold text-gray-700 mb-1">الموقع على الخريطة</label>
-        <p class="text-xs text-gray-500 mb-2">انقر على الخريطة لتحديد الموقع أو ابحث عن العنوان</p>
-        
-        <!-- Search Box -->
+        <label for="mapUrl-edit" class="block text-sm font-bold text-gray-700 mb-2">
+          رابط الموقع على Google Maps
+        </label>
         <input
-          id="search-map-edit"
-          type="text"
-          placeholder="ابحث عن موقع..."
-          class="w-full px-3 py-2 mb-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          id="mapUrl-edit"
+          type="url"
+          [(ngModel)]="formData.mapUrl"
+          name="mapUrl"
+          class="input-focus w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+          placeholder="https://www.google.com/maps/place/..."
         />
+        <p class="text-xs text-gray-500 mt-1">انسخ رابط الموقع من Google Maps</p>
         
-        <!-- Interactive Map -->
-        <div id="map-edit" class="w-full h-48 rounded-lg overflow-hidden border border-gray-300 mb-2"></div>
-        
-        <!-- Coordinates Display -->
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">خط العرض</label>
-            <input
-              type="number"
-              [(ngModel)]="formData.latitude"
-              (ngModelChange)="onCoordinatesChange()"
-              step="any"
-              class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              placeholder="30.0444"
-            />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">خط الطول</label>
-            <input
-              type="number"
-              [(ngModel)]="formData.longitude"
-              (ngModelChange)="onCoordinatesChange()"
-              step="any"
-              class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              placeholder="31.2357"
-            />
-          </div>
-        </div>
       </div>
 
       <div class="flex gap-2">

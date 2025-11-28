@@ -46,9 +46,9 @@ export class LayoutComponent implements OnInit, OnDestroy {
       { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false, hasSubmenu: true },
       { icon: '📷', label: 'تسجيل الدخول/الخروج', route: '/dashboard/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
       { icon: '📊', label: 'سجل الدخول والخروج', route: '/dashboard/reports/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '👤', label: 'سجل الطالب', route: '/dashboard/reports/student-record', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
       { icon: '⭐', label: 'التفضيلات', route: '/dashboard/preferences', active: false, adminOnly: false, studentOnly: true },
+      { icon: '🏠', label: 'غرفتي', route: '/dashboard/my-room', active: false, adminOnly: false, studentOnly: true },
+      { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
     ];
     
     const mainItems: typeof allItems = [];

@@ -7,10 +7,10 @@ export interface Building {
   id: number;
   name: string;
   address?: string;
-  latitude?: number | string;
-  longitude?: number | string;
+  mapUrl?: string;
   floors?: number;
   roomCount?: number;
+  studentCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -40,16 +40,14 @@ export interface BuildingResponse {
 export interface CreateBuildingRequest {
   name: string;
   address?: string;
-  latitude?: number | string;
-  longitude?: number | string;
+  mapUrl?: string;
   floors?: number;
 }
 
 export interface UpdateBuildingRequest {
   name?: string;
   address?: string;
-  latitude?: number | string;
-  longitude?: number | string;
+  mapUrl?: string;
   floors?: number;
 }
 

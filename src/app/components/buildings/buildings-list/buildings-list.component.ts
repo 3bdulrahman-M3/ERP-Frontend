@@ -28,43 +28,81 @@ export class BuildingsListComponent implements OnInit {
   formData = {
     name: '',
     address: '',
-    latitude: '',
-    longitude: '',
+    mapUrl: '',
     floors: ''
   };
-
-  // Google Maps
-  map: google.maps.Map | null = null;
-  marker: google.maps.Marker | null = null;
-  mapInitialized = false;
 
   constructor(
     private buildingService: BuildingService,
     private sanitizer: DomSanitizer
   ) {}
 
-  getMapUrl(): SafeResourceUrl | null {
-    if (this.formData.latitude && this.formData.longitude) {
-      const lat = parseFloat(this.formData.latitude);
-      const lng = parseFloat(this.formData.longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        const url = `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
-        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  getMapEmbedUrl(): SafeResourceUrl | null {
+    if (this.formData.mapUrl) {
+      let embedUrl = this.formData.mapUrl.trim();
+      
+      // If it's already an embed URL, use it as is
+      if (embedUrl.includes('/embed') || embedUrl.includes('output=embed')) {
+        return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
       }
+      
+      // Convert regular Google Maps URL to embed format
+      if (embedUrl.includes('google.com/maps')) {
+        // Extract the query part
+        if (embedUrl.includes('?q=')) {
+          const query = embedUrl.split('?q=')[1]?.split('&')[0];
+          if (query) {
+            embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+          }
+        } else if (embedUrl.includes('/place/')) {
+          // Extract place ID or name
+          const placeMatch = embedUrl.match(/\/place\/([^/?]+)/);
+          if (placeMatch && placeMatch[1]) {
+            const placeId = placeMatch[1];
+            embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(placeId)}&output=embed`;
+          }
+        } else if (embedUrl.includes('/@')) {
+          // Extract coordinates from @lat,lng format
+          const coordMatch = embedUrl.match(/@([^,]+),([^,]+)/);
+          if (coordMatch && coordMatch[1] && coordMatch[2]) {
+            embedUrl = `https://www.google.com/maps?q=${coordMatch[1]},${coordMatch[2]}&output=embed`;
+          }
+        } else {
+          // Try to use the URL as is with output=embed
+          if (!embedUrl.includes('output=')) {
+            embedUrl = embedUrl + (embedUrl.includes('?') ? '&' : '?') + 'output=embed';
+          }
+        }
+      }
+      
+      return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
     }
     return null;
   }
 
-  ngOnInit() {
-    this.loadBuildings();
+  getDirectionsUrl(mapUrl: string | null | undefined): string | null {
+    if (!mapUrl) return null;
+    
+    // Convert to directions URL
+    if (mapUrl.includes('google.com/maps')) {
+      if (mapUrl.includes('/place/')) {
+        const placeMatch = mapUrl.match(/\/place\/([^/?]+)/);
+        if (placeMatch && placeMatch[1]) {
+          return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(placeMatch[1])}`;
+        }
+      } else if (mapUrl.includes('?q=')) {
+        const query = mapUrl.split('?q=')[1]?.split('&')[0];
+        if (query) {
+          return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`;
+        }
+      }
+    }
+    
+    return mapUrl;
   }
 
-  openGoogleMaps() {
-    if (this.formData.latitude && this.formData.longitude) {
-      const lat = this.formData.latitude;
-      const lng = this.formData.longitude;
-      window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
-    }
+  ngOnInit() {
+    this.loadBuildings();
   }
 
   loadBuildings() {
@@ -92,20 +130,14 @@ export class BuildingsListComponent implements OnInit {
     this.formData = {
       name: '',
       address: '',
-      latitude: '',
-      longitude: '',
+      mapUrl: '',
       floors: ''
     };
     this.showAddModal = true;
-    setTimeout(() => {
-      this.initMap('map-add');
-    }, 100);
   }
 
   closeAddModal() {
     this.showAddModal = false;
-    this.map = null;
-    this.marker = null;
   }
 
   openEditModal(building: Building) {
@@ -113,29 +145,16 @@ export class BuildingsListComponent implements OnInit {
     this.formData = {
       name: building.name,
       address: building.address || '',
-      latitude: building.latitude?.toString() || '',
-      longitude: building.longitude?.toString() || '',
+      mapUrl: building.mapUrl || '',
       floors: building.floors?.toString() || ''
     };
     
     this.showEditModal = true;
-    setTimeout(() => {
-      this.initMap('map-edit');
-      if (building.latitude && building.longitude) {
-        const lat = parseFloat(building.latitude.toString());
-        const lng = parseFloat(building.longitude.toString());
-        if (!isNaN(lat) && !isNaN(lng)) {
-          this.setMapLocation(lat, lng);
-        }
-      }
-    }, 100);
   }
 
   closeEditModal() {
     this.showEditModal = false;
     this.selectedBuilding = null;
-    this.map = null;
-    this.marker = null;
   }
 
   openDeleteModal(building: Building) {
@@ -158,13 +177,9 @@ export class BuildingsListComponent implements OnInit {
     const buildingData: any = {
       name: this.formData.name,
       address: this.formData.address || undefined,
+      mapUrl: this.formData.mapUrl || undefined,
       floors: this.formData.floors ? parseInt(this.formData.floors) : undefined
     };
-
-    if (this.formData.latitude && this.formData.longitude) {
-      buildingData.latitude = parseFloat(this.formData.latitude);
-      buildingData.longitude = parseFloat(this.formData.longitude);
-    }
 
     this.buildingService.createBuilding(buildingData).subscribe({
       next: (response) => {
@@ -191,13 +206,9 @@ export class BuildingsListComponent implements OnInit {
     const buildingData: any = {
       name: this.formData.name,
       address: this.formData.address || undefined,
+      mapUrl: this.formData.mapUrl || undefined,
       floors: this.formData.floors ? parseInt(this.formData.floors) : undefined
     };
-
-    if (this.formData.latitude && this.formData.longitude) {
-      buildingData.latitude = parseFloat(this.formData.latitude);
-      buildingData.longitude = parseFloat(this.formData.longitude);
-    }
 
     this.buildingService.updateBuilding(this.selectedBuilding.id, buildingData).subscribe({
       next: (response) => {
@@ -264,173 +275,6 @@ export class BuildingsListComponent implements OnInit {
 
   get Math() {
     return Math;
-  }
-
-  initMap(mapId: string) {
-    if (typeof google === 'undefined' || !google.maps) {
-      console.warn('Google Maps API not loaded. Please add your API key in index.html');
-      return;
-    }
-
-    const mapElement = document.getElementById(mapId);
-    if (!mapElement) return;
-
-    // Default location (Cairo, Egypt)
-    const defaultLocation = { lat: 30.0444, lng: 31.2357 };
-    
-    // If coordinates exist, use them
-    let initialLocation = defaultLocation;
-    if (this.formData.latitude && this.formData.longitude) {
-      const lat = parseFloat(this.formData.latitude);
-      const lng = parseFloat(this.formData.longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        initialLocation = { lat, lng };
-      }
-    }
-
-    this.map = new google.maps.Map(mapElement, {
-      center: initialLocation,
-      zoom: initialLocation !== defaultLocation ? 15 : 10,
-      mapTypeControl: true,
-      streetViewControl: true,
-      fullscreenControl: true
-    });
-
-    // Add marker if location exists
-    if (initialLocation !== defaultLocation) {
-      this.marker = new google.maps.Marker({
-        position: initialLocation,
-        map: this.map,
-        draggable: true
-      });
-
-      // Update coordinates when marker is dragged
-      this.marker.addListener('dragend', () => {
-        if (this.marker) {
-          const position = this.marker.getPosition();
-          if (position) {
-            this.formData.latitude = position.lat().toString();
-            this.formData.longitude = position.lng().toString();
-          }
-        }
-      });
-    }
-
-    // Add click listener to map
-    this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
-      if (e.latLng) {
-        const lat = e.latLng.lat();
-        const lng = e.latLng.lng();
-        
-        // Update form data
-        this.formData.latitude = lat.toString();
-        this.formData.longitude = lng.toString();
-
-        // Update or create marker
-        if (this.marker) {
-          this.marker.setPosition({ lat, lng });
-        } else {
-          this.marker = new google.maps.Marker({
-            position: { lat, lng },
-            map: this.map,
-            draggable: true
-          });
-
-          // Update coordinates when marker is dragged
-          this.marker.addListener('dragend', () => {
-            if (this.marker) {
-              const position = this.marker.getPosition();
-              if (position) {
-                this.formData.latitude = position.lat().toString();
-                this.formData.longitude = position.lng().toString();
-              }
-            }
-          });
-        }
-
-        // Get address using reverse geocoding
-        this.getAddressFromCoordinates(lat, lng);
-      }
-    });
-
-    // Add search box
-    this.addSearchBox(mapId);
-  }
-
-  setMapLocation(lat: number, lng: number) {
-    if (this.map) {
-      const location = { lat, lng };
-      this.map.setCenter(location);
-      this.map.setZoom(15);
-
-      if (this.marker) {
-        this.marker.setPosition(location);
-      } else {
-        this.marker = new google.maps.Marker({
-          position: location,
-          map: this.map,
-          draggable: true
-        });
-
-        this.marker.addListener('dragend', () => {
-          if (this.marker) {
-            const position = this.marker.getPosition();
-            if (position) {
-              this.formData.latitude = position.lat().toString();
-              this.formData.longitude = position.lng().toString();
-            }
-          }
-        });
-      }
-    }
-  }
-
-  addSearchBox(mapId: string) {
-    if (typeof google === 'undefined' || !google.maps || !this.map) return;
-
-    const input = document.getElementById(`search-${mapId}`) as HTMLInputElement;
-    if (!input) return;
-
-    const searchBox = new google.maps.places.SearchBox(input);
-    this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-
-    searchBox.addListener('places_changed', () => {
-      const places = searchBox.getPlaces();
-      if (places && places.length > 0) {
-        const place = places[0];
-        if (place.geometry && place.geometry.location) {
-          const lat = place.geometry.location.lat();
-          const lng = place.geometry.location.lng();
-          
-          this.formData.latitude = lat.toString();
-          this.formData.longitude = lng.toString();
-          this.formData.address = place.formatted_address || '';
-
-          this.setMapLocation(lat, lng);
-        }
-      }
-    });
-  }
-
-  getAddressFromCoordinates(lat: number, lng: number) {
-    if (typeof google === 'undefined' || !google.maps) return;
-
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-      if (status === 'OK' && results && results[0]) {
-        this.formData.address = results[0].formatted_address || '';
-      }
-    });
-  }
-
-  onCoordinatesChange() {
-    if (this.formData.latitude && this.formData.longitude) {
-      const lat = parseFloat(this.formData.latitude);
-      const lng = parseFloat(this.formData.longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        this.setMapLocation(lat, lng);
-      }
-    }
   }
 }
 

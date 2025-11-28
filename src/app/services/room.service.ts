@@ -222,6 +222,10 @@ export class RoomService {
     return this.http.get(`${this.apiUrl}/student/${studentId}`);
   }
 
+  getMyRoom(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/my-room`);
+  }
+
   getRoomStudents(roomId: number, includeInactive: boolean = false): Observable<RoomStudentsResponse> {
     const params = new HttpParams().set('includeInactive', includeInactive.toString());
     return this.http.get<RoomStudentsResponse>(`${this.apiUrl}/${roomId}/students`, { params });
