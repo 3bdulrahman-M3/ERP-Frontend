@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ChatService, Message, Conversation } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
+import { ModalService } from '../../services/modal.service';
 import { interval, Subscription } from 'rxjs';
 
 @Component({
@@ -20,17 +21,25 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   selectedConversation: Conversation | null = null;
   messages: Message[] = [];
   newMessage = '';
+  selectedFile: File | null = null;
   isLoading = false;
   currentUserRole: string = '';
   currentUserId: number = 0;
+  currentUserProfileImage: string | null = null;
   unreadCount = 0;
+  window = window; // For template access
+  imageErrorMap = new Map<number, boolean>(); // Track image load errors
+  conversationImageErrorMap = new Map<number, boolean>(); // Track conversation image load errors
+  private shouldScrollToBottom = true; // Track if we should auto-scroll
+  private previousMessageCount = 0; // Track previous message count
   
   private refreshSubscription?: Subscription;
   private messagesRefreshSubscription?: Subscription;
 
   constructor(
     private chatService: ChatService,
-    private authService: AuthService
+    private authService: AuthService,
+    private modalService: ModalService
   ) {}
 
   ngOnInit() {
@@ -38,6 +47,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (user) {
       this.currentUserRole = user.role;
       this.currentUserId = user.id;
+      this.currentUserProfileImage = user.profileImage || null;
     }
     
     this.loadConversations();
@@ -58,7 +68,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngAfterViewChecked() {
-    this.scrollToBottom();
+    // Only scroll if user is at bottom or just sent a message
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false; // Reset after scrolling
+    }
   }
 
   ngOnDestroy() {
@@ -79,6 +93,23 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     } catch (err) {
       console.error('Error scrolling to bottom:', err);
     }
+  }
+
+  isNearBottom(): boolean {
+    try {
+      if (!this.messagesContainer) return true;
+      const element = this.messagesContainer.nativeElement;
+      const threshold = 100; // 100px from bottom
+      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold;
+      return isNearBottom;
+    } catch (err) {
+      return true; // Default to true if we can't check
+    }
+  }
+
+  onScroll() {
+    // Update shouldScrollToBottom based on scroll position
+    this.shouldScrollToBottom = this.isNearBottom();
   }
 
   loadConversations() {
@@ -110,10 +141,32 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   loadMessages() {
     if (!this.selectedConversation) return;
 
+    // Check if user is near bottom before loading
+    const wasNearBottom = this.isNearBottom();
+    const previousScrollTop = this.messagesContainer?.nativeElement?.scrollTop || 0;
+    const previousScrollHeight = this.messagesContainer?.nativeElement?.scrollHeight || 0;
+
     this.chatService.getMessages(this.selectedConversation.id, 1, 100).subscribe({
       next: (response: any) => {
         if (response.success) {
+          const newMessageCount = response.data.messages.length;
+          const hasNewMessages = newMessageCount > this.previousMessageCount;
+          this.previousMessageCount = newMessageCount;
+          
           this.messages = response.data.messages;
+          
+          // Use setTimeout to ensure DOM is updated before scrolling
+          setTimeout(() => {
+            if (wasNearBottom) {
+              // User was at bottom, scroll to show new messages
+              this.scrollToBottom();
+            } else {
+              // User is reading old messages, maintain scroll position
+              const currentScrollHeight = this.messagesContainer?.nativeElement?.scrollHeight || 0;
+              const scrollDiff = currentScrollHeight - previousScrollHeight;
+              this.messagesContainer.nativeElement.scrollTop = previousScrollTop + scrollDiff;
+            }
+          }, 0);
         }
       },
       error: (error: any) => {
@@ -125,17 +178,46 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   selectConversation(conversation: Conversation) {
     this.selectedConversation = conversation;
     this.messages = [];
+    this.shouldScrollToBottom = true; // Scroll to bottom when selecting conversation
+    this.previousMessageCount = 0; // Reset message count
     this.loadMessages();
   }
 
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        this.modalService.showAlert({
+          title: 'تنبيه',
+          message: 'حجم الملف كبير جداً. الحد الأقصى 10 ميجابايت'
+        }).subscribe();
+        return;
+      }
+      this.selectedFile = file;
+      // Clear the input
+      event.target.value = '';
+    }
+  }
+
+  removeSelectedFile() {
+    this.selectedFile = null;
+  }
+
   sendMessage() {
-    if (!this.newMessage.trim() || !this.selectedConversation) return;
+    if ((!this.newMessage.trim() && !this.selectedFile) || !this.selectedConversation) return;
 
     this.isLoading = true;
-    this.chatService.sendMessage(this.selectedConversation.id, this.newMessage.trim()).subscribe({
+    this.shouldScrollToBottom = true; // Always scroll when sending a message
+    this.chatService.sendMessage(
+      this.selectedConversation.id, 
+      this.newMessage.trim() || '', 
+      this.selectedFile || undefined
+    ).subscribe({
       next: (response: any) => {
         if (response.success) {
           this.newMessage = '';
+          this.selectedFile = null;
           this.loadMessages();
           this.loadConversations();
         }
@@ -143,6 +225,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       },
       error: (error: any) => {
         console.error('Error sending message:', error);
+        this.modalService.showAlert({
+          title: 'خطأ',
+          message: error.error?.message || 'حدث خطأ أثناء إرسال الرسالة'
+        }).subscribe();
         this.isLoading = false;
       }
     });
@@ -197,19 +283,115 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
+  // Format time/date for conversation list (like WhatsApp)
+  formatConversationTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    
+    // Check if same day
+    const isToday = date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
+    
+    if (isToday) {
+      // Show time if same day
+      return date.toLocaleTimeString('ar-EG', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } else {
+      // Show date if different day
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const isYesterday = date.getDate() === yesterday.getDate() &&
+                         date.getMonth() === yesterday.getMonth() &&
+                         date.getFullYear() === yesterday.getFullYear();
+      
+      if (isYesterday) {
+        return 'أمس';
+      } else {
+        return date.toLocaleDateString('ar-EG', {
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+    }
+  }
+
+  // Format date and time for messages (like WhatsApp)
+  formatMessageDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    
+    // Check if same day
+    const isToday = date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
+    
+    const timeStr = date.toLocaleTimeString('ar-EG', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    if (isToday) {
+      // Show only time if same day
+      return timeStr;
+    } else {
+      // Show date and time if different day
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const isYesterday = date.getDate() === yesterday.getDate() &&
+                         date.getMonth() === yesterday.getMonth() &&
+                         date.getFullYear() === yesterday.getFullYear();
+      
+      if (isYesterday) {
+        return `أمس ${timeStr}`;
+      } else {
+        const dateStr = date.toLocaleDateString('ar-EG', {
+          month: 'short',
+          day: 'numeric'
+        });
+        return `${dateStr} ${timeStr}`;
+      }
+    }
+  }
+
   getSenderImage(message: Message): string | null {
+    // For my messages, use current user's profile image
+    if (this.isMyMessage(message)) {
+      return this.currentUserProfileImage;
+    }
+    // For received messages, use sender's profile image
     if (message.sender?.profileImage) {
       return message.sender.profileImage;
     }
     return null;
   }
 
+  getSenderName(message: Message): string {
+    if (this.isMyMessage(message)) {
+      const user = this.authService.getCurrentUser();
+      return user?.name || 'أنت';
+    }
+    return message.sender?.name || 'مستخدم';
+  }
+
   getSenderInitial(message: Message): string {
-    const name = message.sender?.name || '';
+    const name = this.getSenderName(message);
     if (name) {
       return name.charAt(0).toUpperCase();
     }
     return '?';
+  }
+
+  handleImageError(messageId: number): void {
+    this.imageErrorMap.set(messageId, true);
+  }
+
+  handleConversationImageError(conversationId: number): void {
+    this.conversationImageErrorMap.set(conversationId, true);
   }
 
   getConversationImage(conversation: Conversation): string | null {

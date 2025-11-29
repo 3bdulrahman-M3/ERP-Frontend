@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { RoomService, Room } from '../../../services/room.service';
 import { BuildingService, Building } from '../../../services/building.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { ModalService } from '../../../services/modal.service';
 
 @Component({
   selector: 'app-rooms-list',
@@ -31,7 +32,8 @@ export class RoomsListComponent implements OnInit {
   constructor(
     private roomService: RoomService,
     private buildingService: BuildingService,
-    private router: Router
+    private router: Router,
+    private modalService: ModalService
   ) {}
 
   ngOnInit() {
@@ -100,22 +102,35 @@ export class RoomsListComponent implements OnInit {
   }
 
   deleteRoom(id: number, roomNumber: string) {
-    if (confirm(`هل أنت متأكد من حذف الغرفة "${roomNumber}"؟`)) {
-      this.roomService.deleteRoom(id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.loadRooms();
-          } else {
-            alert(response.message || 'فشل حذف الغرفة');
+    this.modalService.showConfirm({
+      title: 'تأكيد الحذف',
+      message: `هل أنت متأكد من حذف الغرفة "${roomNumber}"؟`,
+      confirmText: 'حذف',
+      cancelText: 'إلغاء'
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.roomService.deleteRoom(id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.loadRooms();
+            } else {
+              this.modalService.showAlert({
+                title: 'خطأ',
+                message: response.message || 'فشل حذف الغرفة'
+              }).subscribe();
+            }
+          },
+          error: (error) => {
+            console.error('Delete room error:', error);
+            const errorMessage = error.error?.message || error.message || 'فشل حذف الغرفة';
+            this.modalService.showAlert({
+              title: 'خطأ',
+              message: errorMessage
+            }).subscribe();
           }
-        },
-        error: (error) => {
-          console.error('Delete room error:', error);
-          const errorMessage = error.error?.message || error.message || 'فشل حذف الغرفة';
-          alert(errorMessage);
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   addNewRoom() {
@@ -138,13 +153,13 @@ export class RoomsListComponent implements OnInit {
   getStatusColor(status: string): string {
     switch (status) {
       case 'available':
-        return 'bg-green-500';
+        return 'bg-gray-500';
       case 'occupied':
-        return 'bg-blue-500';
+        return 'bg-gray-600';
       case 'maintenance':
-        return 'bg-yellow-500';
+        return 'bg-gray-700';
       case 'reserved':
-        return 'bg-purple-500';
+        return 'bg-gray-800';
       default:
         return 'bg-gray-500';
     }

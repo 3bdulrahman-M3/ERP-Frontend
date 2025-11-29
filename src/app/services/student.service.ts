@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { PaymentInfo } from './room.service';
 
 export interface Student {
   id: number;
@@ -31,7 +32,8 @@ export interface Student {
     checkInDate: string;
     checkOutDate?: string;
     isActive: boolean;
-    paid?: boolean;
+    payments?: PaymentInfo[];
+    payment?: PaymentInfo | null;
     room?: {
       id: number;
       roomNumber: string;
@@ -158,6 +160,15 @@ export class StudentService {
     }
     
     return this.http.get<StudentsResponse>(`${this.apiUrl}/filter`, { params });
+  }
+
+  completeProfile(data: {
+    collegeId: number;
+    year: string;
+    age?: number | null;
+    phoneNumber?: string | null;
+  }): Observable<StudentResponse> {
+    return this.http.post<StudentResponse>(`${this.apiUrl}/complete-profile`, data);
   }
 }
 

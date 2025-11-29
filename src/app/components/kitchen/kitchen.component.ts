@@ -19,6 +19,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
   countdownTimer: { hours: number; minutes: number; seconds: number } | null = null;
   private timerSubscription?: Subscription;
   private kitchenUpdateSubscription?: Subscription;
+  private isReloading = false; // Flag to prevent multiple simultaneous reloads
   
   mealNames: { [key: string]: string } = {
     breakfast: 'الإفطار',
@@ -43,20 +44,33 @@ export class KitchenComponent implements OnInit, OnDestroy {
   }
 
   loadKitchenData() {
+    if (this.isReloading) {
+      return; // Prevent multiple simultaneous reloads
+    }
+    
     this.isLoadingKitchen = true;
     
     // Load kitchen status
     this.mealService.getKitchenStatus().subscribe({
       next: (response) => {
         if (response.success) {
+          const previousStatus = this.kitchenStatus?.isOpen;
           this.kitchenStatus = response.data;
-          this.updateCountdown();
+          
+          // If status changed from open to closed, update countdown immediately
+          if (previousStatus === true && !this.kitchenStatus.isOpen) {
+            this.updateCountdown();
+          } else {
+            this.updateCountdown();
+          }
         }
         this.isLoadingKitchen = false;
+        this.isReloading = false;
       },
       error: (error) => {
         console.error('Error loading kitchen status:', error);
         this.isLoadingKitchen = false;
+        this.isReloading = false;
       }
     });
 
@@ -74,14 +88,16 @@ export class KitchenComponent implements OnInit, OnDestroy {
   }
 
   startKitchenTimer() {
-    // Update countdown every second
+    // Update countdown every second (more frequent for accuracy)
     this.timerSubscription = interval(1000).subscribe(() => {
       this.updateCountdown();
     });
 
-    // Refresh kitchen status every 30 seconds
-    this.kitchenUpdateSubscription = interval(30000).subscribe(() => {
-      this.loadKitchenData();
+    // Refresh kitchen status every 5 seconds to ensure accuracy
+    this.kitchenUpdateSubscription = interval(5000).subscribe(() => {
+      if (!this.isReloading) {
+        this.loadKitchenData();
+      }
     });
   }
 
@@ -92,9 +108,47 @@ export class KitchenComponent implements OnInit, OnDestroy {
     }
 
     const now = new Date();
+    const nowHours = now.getHours();
+    const nowMinutes = now.getMinutes();
+    const nowSeconds = now.getSeconds();
     let targetTime: Date | null = null;
+    let shouldReload = false;
 
-    if (this.kitchenStatus.nextMeal) {
+    // Check if kitchen is open and has current meal
+    if (this.kitchenStatus.isOpen && this.kitchenStatus.currentMeal) {
+      // If kitchen is open, countdown to when it closes
+      const [endHours, endMinutes] = this.kitchenStatus.currentMeal.endTime.split(':').map(Number);
+      
+      // Check if we've reached or passed the exact end time (compare hours and minutes)
+      const endTimeToday = new Date();
+      endTimeToday.setHours(endHours, endMinutes, 0, 0);
+      const timeUntilEnd = endTimeToday.getTime() - now.getTime();
+      
+      // More precise check: if current time is at or past the end time
+      // Check by comparing hours and minutes directly
+      const isTimeReached = nowHours > endHours || (nowHours === endHours && nowMinutes >= endMinutes);
+      
+      if (isTimeReached || timeUntilEnd <= 0) {
+        // Time has been reached (at or past the exact time), reload immediately
+        shouldReload = true;
+        this.countdownTimer = { hours: 0, minutes: 0, seconds: 0 };
+      } else {
+        // Meal hasn't ended yet, countdown to end time
+        targetTime = endTimeToday;
+        
+        if (timeUntilEnd > 0) {
+          const totalSeconds = Math.floor(timeUntilEnd / 1000);
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          const seconds = totalSeconds % 60;
+          this.countdownTimer = { hours, minutes, seconds };
+        } else {
+          this.countdownTimer = { hours: 0, minutes: 0, seconds: 0 };
+          shouldReload = true;
+        }
+      }
+    } else if (this.kitchenStatus.nextMeal) {
+      // If kitchen is closed, countdown to next meal
       const [hours, minutes] = this.kitchenStatus.nextMeal.startTime.split(':').map(Number);
       targetTime = new Date();
       targetTime.setHours(hours, minutes, 0, 0);
@@ -103,19 +157,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
       if (targetTime <= now) {
         targetTime.setDate(targetTime.getDate() + 1);
       }
-    } else if (this.kitchenStatus.currentMeal) {
-      // If kitchen is open, countdown to when it closes
-      const [hours, minutes] = this.kitchenStatus.currentMeal.endTime.split(':').map(Number);
-      targetTime = new Date();
-      targetTime.setHours(hours, minutes, 0, 0);
       
-      // If the target time is earlier today, it means it's tomorrow
-      if (targetTime <= now) {
-        targetTime.setDate(targetTime.getDate() + 1);
-      }
-    }
-
-    if (targetTime) {
       const diff = targetTime.getTime() - now.getTime();
       if (diff > 0) {
         const totalSeconds = Math.floor(diff / 1000);
@@ -124,12 +166,19 @@ export class KitchenComponent implements OnInit, OnDestroy {
         const seconds = totalSeconds % 60;
         this.countdownTimer = { hours, minutes, seconds };
       } else {
+        // Countdown reached zero or negative
         this.countdownTimer = { hours: 0, minutes: 0, seconds: 0 };
-        // Reload kitchen status when countdown reaches zero
-        this.loadKitchenData();
+        shouldReload = true;
       }
     } else {
       this.countdownTimer = null;
+    }
+
+    // Reload kitchen status immediately when time is reached
+    if (shouldReload && !this.isReloading) {
+      this.isReloading = true;
+      // Reload immediately without delay
+      this.loadKitchenData();
     }
   }
 

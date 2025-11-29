@@ -1,7 +1,7 @@
 <app-layout pageTitle="سجل الدخول والخروج">
   <div class="p-4 space-y-4">
     <!-- Header -->
-    <div class="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl p-4 text-white shadow-lg">
+    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 text-white shadow-lg">
       <h2 class="text-xl font-bold mb-2 flex items-center">
         <span class="mr-2 text-2xl">📋</span>
         سجل دخولي وخروجي
@@ -12,7 +12,7 @@
     <!-- Records Table -->
     <div class="bg-white rounded-xl shadow-lg p-4">
       <div *ngIf="isLoading" class="text-center py-8">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-700"></div>
         <p class="mt-2 text-sm text-gray-500">جاري التحميل...</p>
       </div>
 
@@ -27,7 +27,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let record of records" class="hover:bg-blue-50 transition-colors">
+            <tr *ngFor="let record of records" class="hover:bg-gray-50 transition-colors">
               <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                 {{ formatDate(record.date) }}
               </td>
@@ -39,8 +39,8 @@
               </td>
               <td class="px-4 py-3 whitespace-nowrap">
                 <span [class]="'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ' + getStatusBadgeClass(record.status)">
-                  <span *ngIf="record.status === 'checked_in'" class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                  <span *ngIf="record.status === 'checked_out'" class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                  <span *ngIf="record.status === 'checked_in'" class="w-2 h-2 bg-gray-600 rounded-full mr-2"></span>
+                  <span *ngIf="record.status === 'checked_out'" class="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   {{ getStatusText(record.status) }}
                 </span>
               </td>

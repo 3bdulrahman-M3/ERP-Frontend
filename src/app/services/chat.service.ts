@@ -8,7 +8,10 @@ export interface Message {
   conversationId: number;
   senderId: number;
   senderRole: 'admin' | 'student';
-  content: string;
+  content: string | null;
+  attachmentUrl?: string | null;
+  attachmentType?: 'image' | 'file' | null;
+  attachmentName?: string | null;
   isRead: boolean;
   createdAt: string;
   updatedAt: string;
@@ -25,6 +28,7 @@ export interface Conversation {
   studentId: number;
   adminId?: number | null;
   lastMessageAt?: string | null;
+  lastMessage?: string | null;
   createdAt: string;
   updatedAt: string;
   student?: {
@@ -109,11 +113,17 @@ export class ChatService {
     return this.http.get<MessagesResponse>(`${this.apiUrl}/conversations/${conversationId}/messages?page=${page}&limit=${limit}`);
   }
 
-  sendMessage(conversationId: number, content: string): Observable<{ success: boolean; data: Message }> {
-    return this.http.post<{ success: boolean; data: Message }>(`${this.apiUrl}/messages`, {
-      conversationId,
-      content
-    });
+  sendMessage(conversationId: number, content: string, file?: File): Observable<{ success: boolean; data: Message }> {
+    const formData = new FormData();
+    formData.append('conversationId', conversationId.toString());
+    if (content && content.trim()) {
+      formData.append('content', content.trim());
+    }
+    if (file) {
+      formData.append('attachment', file);
+    }
+    
+    return this.http.post<{ success: boolean; data: Message }>(`${this.apiUrl}/messages`, formData);
   }
 
   getUnreadCount(): Observable<UnreadCountResponse> {

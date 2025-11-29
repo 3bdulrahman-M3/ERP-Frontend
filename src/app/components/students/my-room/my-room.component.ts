@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { RoomService } from '../../../services/room.service';
+import { RoomService, PaymentInfo } from '../../../services/room.service';
 import { AuthService } from '../../../services/auth.service';
 import { StudentService } from '../../../services/student.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
@@ -12,6 +12,12 @@ interface Roommate {
   name: string;
   email: string;
   profileImage?: string;
+  year?: number;
+  college?: {
+    id: number;
+    name: string;
+  };
+  payment?: PaymentInfo | null;
 }
 
 interface RoomData {
@@ -29,6 +35,7 @@ interface RoomData {
     }>;
   };
   roommates?: Roommate[];
+  payment?: PaymentInfo | null;
 }
 
 @Component({
@@ -43,6 +50,17 @@ export class MyRoomComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   currentStudentId: number | null = null;
+  paymentMethodLabels: Record<string, string> = {
+    cash: 'نقدي',
+    visa: 'فيزا',
+    bank_transfer: 'تحويل بنكي',
+    other: 'أخرى'
+  };
+  paymentStatusLabels: Record<string, string> = {
+    paid: 'تم الدفع',
+    partial: 'مدفوع جزئياً',
+    unpaid: 'لم يتم الدفع'
+  };
 
   constructor(
     private roomService: RoomService,
@@ -50,6 +68,28 @@ export class MyRoomComponent implements OnInit {
     private studentService: StudentService,
     private sanitizer: DomSanitizer
   ) {}
+
+  getPaymentStatusLabel(status?: string | null): string {
+    return this.paymentStatusLabels[status || ''] || 'غير محدد';
+  }
+
+  getPaymentStatusClass(status?: string | null): string {
+    switch (status) {
+      case 'paid':
+        return 'bg-gray-700 text-white';
+      case 'partial':
+        return 'bg-gray-600 text-white';
+      case 'unpaid':
+        return 'bg-gray-500 text-white';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  }
+
+  formatCurrency(value?: number | string | null): string {
+    const numericValue = Number(value ?? 0);
+    return `${numericValue.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ج.م`;
+  }
 
   ngOnInit() {
     this.loadCurrentStudent();

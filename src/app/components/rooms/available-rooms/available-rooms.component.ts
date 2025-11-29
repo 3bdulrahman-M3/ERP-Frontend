@@ -95,12 +95,12 @@ export class AvailableRoomsComponent implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     const classes: { [key: string]: string } = {
-      'available': 'bg-green-100 text-green-700',
-      'occupied': 'bg-yellow-100 text-yellow-700',
-      'maintenance': 'bg-red-100 text-red-700',
-      'reserved': 'bg-blue-100 text-blue-700'
+      'available': 'bg-gray-500 text-white',
+      'occupied': 'bg-gray-600 text-white',
+      'maintenance': 'bg-gray-700 text-white',
+      'reserved': 'bg-gray-800 text-white'
     };
-    return classes[status] || 'bg-gray-100 text-gray-700';
+    return classes[status] || 'bg-gray-500 text-white';
   }
 
   getStatusText(status: string): string {

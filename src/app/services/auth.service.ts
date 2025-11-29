@@ -44,6 +44,27 @@ export class AuthService {
     }
   }
 
+  register(data: {
+    name: string;
+    email: string;
+    password: string;
+    phoneNumber?: string | null;
+    college?: string | null;
+    year?: string | null;
+    age?: number | null;
+  }): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, data).pipe(
+      tap(response => {
+        if (response.success) {
+          localStorage.setItem('accessToken', response.data.accessToken);
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          this.currentUserSubject.next(response.data.user);
+        }
+      })
+    );
+  }
+
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, {
       email,
@@ -108,6 +129,11 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  setCurrentUser(user: User): void {
+    localStorage.setItem('user', JSON.stringify(user));
+    this.currentUserSubject.next(user);
   }
 
   isAuthenticated(): boolean {

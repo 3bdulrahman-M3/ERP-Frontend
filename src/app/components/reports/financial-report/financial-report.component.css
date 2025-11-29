@@ -1,0 +1,37 @@
+.summary-card {
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.filter-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.filter-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.table-head {
+  padding: 0.75rem 1.5rem;
+  text-align: right;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table-cell {
+  padding: 1rem 1.5rem;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  color: #111827;
+}
+

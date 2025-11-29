@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter, interval, Subscription } from 'rxjs';
@@ -18,7 +18,8 @@ import { environment } from '../../../environments/environment';
   standalone: true,
   imports: [CommonModule, RouterModule, LayoutComponent, ChatWidgetComponent],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  styleUrl: './dashboard.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
@@ -39,6 +40,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   nextMealTime = '';
   isLoadingKitchen = false;
   countdownTimer: { hours: number; minutes: number; seconds: number } | null = null;
+  private isReloadingKitchen = false; // Flag to prevent multiple simultaneous reloads
   private timeSubscription?: Subscription;
   private kitchenUpdateSubscription?: Subscription;
   private countdownSubscription?: Subscription;
@@ -46,6 +48,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Check-in/out status for students
   checkInOutStatus: { isCheckedIn: boolean; checkInTime: string | null; checkOutTime: string | null; status: string | null } | null = null;
   isLoadingStatus = false;
+  
+  // Student room information
+  studentRoomInfo: {
+    roomNumber?: string;
+    buildingName?: string;
+    buildingId?: number;
+    floor?: number;
+  } | null = null;
+  isLoadingRoomInfo = false;
+  
+  // Student profile information
+  studentInfo: {
+    college?: string;
+    year?: number;
+    age?: number;
+    phoneNumber?: string;
+  } | null = null;
   
   mealNames: { [key: string]: string } = {
     breakfast: 'الإفطار',
@@ -71,7 +90,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private checkInOutService: CheckInOutService,
     private http: HttpClient,
     public router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit() {
@@ -79,20 +100,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.currentRoute = this.router.url;
     this.updatePageTitle();
     
+    // Check if student has profile, if not redirect to complete profile
+    if (this.currentUser?.role === 'student') {
+      this.checkStudentProfile();
+    }
+    
     // Load statistics if admin
     if (this.currentUser?.role === 'admin') {
       this.loadStatistics();
-    }
-    
-    // Load kitchen data if student
-    if (this.currentUser?.role === 'student') {
-      this.loadKitchenData();
-      this.loadCheckInOutStatus();
-      this.startTimeUpdate();
-      // Start countdown timer immediately
-      this.countdownSubscription = interval(1000).subscribe(() => {
-        this.updateCountdown();
-      });
     }
     
     // Update title when route changes
@@ -101,6 +116,33 @@ export class DashboardComponent implements OnInit, OnDestroy {
     ).subscribe(() => {
       this.currentRoute = this.router.url;
       this.updatePageTitle();
+    });
+  }
+
+  checkStudentProfile() {
+    this.http.get(`${environment.apiUrl}/api/dashboard/check-student-profile`).subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          if (!response.hasProfile) {
+            // Student doesn't have profile, redirect to complete profile
+            this.router.navigate(['/complete-profile']);
+          } else {
+            // Student has profile, load dashboard data
+            this.loadKitchenData();
+            this.loadCheckInOutStatus();
+            this.loadStudentRoomInfo();
+            this.startTimeUpdate();
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error checking student profile:', error);
+        // On error, try to load dashboard anyway
+        this.loadKitchenData();
+        this.loadCheckInOutStatus();
+        this.loadStudentRoomInfo();
+        this.startTimeUpdate();
+      }
     });
   }
 
@@ -129,10 +171,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.occupiedRooms = response.data.occupiedRooms || 0;
         }
         this.isLoadingStats = false;
+        requestAnimationFrame(() => {
+          this.cdr.markForCheck();
+        });
       },
       error: (error) => {
         console.error('Error loading statistics:', error);
         this.isLoadingStats = false;
+        requestAnimationFrame(() => {
+          this.cdr.markForCheck();
+        });
       }
     });
   }
@@ -197,40 +245,113 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   loadKitchenData() {
+    if (this.isReloadingKitchen) {
+      return; // Prevent multiple simultaneous reloads
+    }
+    
     this.isLoadingKitchen = true;
     
     this.mealService.getKitchenStatus().subscribe({
       next: (response) => {
         if (response.success) {
-          this.kitchenStatus = response.data;
-          this.updateNextMealTime();
-          this.updateCountdown();
+          const previousStatus = this.kitchenStatus?.isOpen;
+          const previousCurrentMealId = this.kitchenStatus?.currentMeal?.id;
+          const previousNextMealId = this.kitchenStatus?.nextMeal?.id;
+          const previousCurrentMealEndTime = this.kitchenStatus?.currentMeal?.endTime;
+          const previousNextMealStartTime = this.kitchenStatus?.nextMeal?.startTime;
+          
+          // Check if data actually changed before updating
+          const newStatus = response.data;
+          const statusChanged = previousStatus !== newStatus.isOpen;
+          const currentMealChanged = previousCurrentMealId !== newStatus.currentMeal?.id;
+          const nextMealChanged = previousNextMealId !== newStatus.nextMeal?.id;
+          const currentMealTimeChanged = previousCurrentMealEndTime !== newStatus.currentMeal?.endTime;
+          const nextMealTimeChanged = previousNextMealStartTime !== newStatus.nextMeal?.startTime;
+          const hasChanges = statusChanged || currentMealChanged || nextMealChanged || currentMealTimeChanged || nextMealTimeChanged;
+          
+          if (hasChanges) {
+            // Only update if something actually changed
+            this.kitchenStatus = newStatus;
+            
+            // Update next meal time and countdown only if needed
+            this.updateNextMealTime();
+            this.updateCountdown();
+            
+            // Trigger change detection only if status or meal changed (not just time)
+            if (statusChanged || currentMealChanged || nextMealChanged) {
+              requestAnimationFrame(() => {
+                this.cdr.markForCheck();
+              });
+            }
+          }
+          // If no changes, don't trigger change detection at all
         }
         this.isLoadingKitchen = false;
+        this.isReloadingKitchen = false;
+        // Don't trigger change detection here - only trigger if data actually changed
       },
       error: (error) => {
         console.error('Error loading kitchen status:', error);
         this.isLoadingKitchen = false;
+        this.isReloadingKitchen = false;
+        // Only trigger change detection on error if needed
       }
     });
   }
 
   startTimeUpdate() {
-    // Update current time every second
-    this.updateCurrentTime();
-    this.timeSubscription = interval(1000).subscribe(() => {
-      this.updateCurrentTime();
+    // Update current time every second (only if needed for display)
+    // Note: We removed this to reduce re-renders since currentTime is not displayed in the template
+    
+    // Refresh kitchen status and check-in/out status every 30 seconds to reduce API calls and re-renders
+    // Run outside Angular zone to prevent automatic change detection
+    this.ngZone.runOutsideAngular(() => {
+      this.kitchenUpdateSubscription = interval(30000).subscribe(() => {
+        if (!this.isReloadingKitchen) {
+          this.loadKitchenData();
+        }
+        // Only reload check-in/out status if needed (less frequently)
+        // this.loadCheckInOutStatus(); // Commented to reduce re-renders
+      });
     });
-
-    // Refresh kitchen status and check-in/out status every 30 seconds
-    this.kitchenUpdateSubscription = interval(30000).subscribe(() => {
-      this.loadKitchenData();
-      this.loadCheckInOutStatus();
+    
+    // Update countdown every second (but only trigger change detection when needed)
+    // Run outside Angular zone to prevent automatic change detection
+    this.ngZone.runOutsideAngular(() => {
+      this.countdownSubscription = interval(1000).subscribe(() => {
+        const previousTimer = this.countdownTimer ? { ...this.countdownTimer } : null;
+        this.updateCountdown();
+        
+        // Only trigger change detection if countdown actually changed
+        if (previousTimer && this.countdownTimer) {
+          const changed = previousTimer.hours !== this.countdownTimer.hours ||
+                         previousTimer.minutes !== this.countdownTimer.minutes ||
+                         previousTimer.seconds !== this.countdownTimer.seconds;
+          if (changed) {
+            // Run change detection inside Angular zone only when needed
+            this.ngZone.run(() => {
+              this.cdr.markForCheck();
+            });
+          }
+        } else if (previousTimer !== this.countdownTimer) {
+          this.ngZone.run(() => {
+            this.cdr.markForCheck();
+          });
+        }
+      });
     });
   }
 
   updateCurrentTime() {
-    this.currentTime = getCurrentTime12HourShort();
+    // Only update if time actually changed (to reduce re-renders)
+    const newTime = getCurrentTime12HourShort();
+    if (newTime !== this.currentTime) {
+      this.currentTime = newTime;
+      // Use requestAnimationFrame for smoother updates
+      requestAnimationFrame(() => {
+        this.cdr.markForCheck();
+      });
+    }
   }
 
   loadCheckInOutStatus() {
@@ -241,10 +362,149 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.checkInOutStatus = response.data;
         }
         this.isLoadingStatus = false;
+        requestAnimationFrame(() => {
+          this.cdr.markForCheck();
+        });
       },
       error: (error) => {
         console.error('Error loading check-in/out status:', error);
         this.isLoadingStatus = false;
+        requestAnimationFrame(() => {
+          this.cdr.markForCheck();
+        });
+      }
+    });
+  }
+
+  loadStudentRoomInfo() {
+    if (this.currentUser?.role !== 'student') {
+      return;
+    }
+    
+    this.isLoadingRoomInfo = true;
+    
+    // Load room info and student info in parallel
+    this.roomService.getMyRoom().subscribe({
+      next: (response: any) => {
+        if (response.success) {
+          // Extract room information
+          if (response.data?.room) {
+            const room = response.data.room;
+            this.studentRoomInfo = {
+              roomNumber: room.roomNumber,
+              buildingName: room.buildingInfo?.name || room.building,
+              buildingId: room.buildingInfo?.id || room.buildingId,
+              floor: room.floor
+            };
+          } else {
+            this.studentRoomInfo = null;
+          }
+          
+          // Extract student information from multiple possible locations
+          // Priority: roomStudents (has college info) > student > roommates
+          let studentData = null;
+          
+          // First, try from roomStudents array (this usually has college info included)
+          if (response.data?.room?.roomStudents && Array.isArray(response.data.room.roomStudents)) {
+            // Find current student in roomStudents by matching userId
+            for (const rs of response.data.room.roomStudents) {
+              if (rs.student) {
+                const studentUserId = rs.student.user?.id || rs.student.userId;
+                if (studentUserId === this.currentUser?.id) {
+                  studentData = rs.student;
+                  break;
+                }
+              }
+            }
+          }
+          
+          // If not found, try from response.data.student
+          if (!studentData && response.data?.student) {
+            studentData = response.data.student;
+          }
+          
+          // Also try from roommates array
+          if (!studentData && response.data?.roommates && Array.isArray(response.data.roommates)) {
+            for (const rm of response.data.roommates) {
+              const studentUserId = rm.user?.id || rm.userId;
+              if (studentUserId === this.currentUser?.id) {
+                studentData = rm;
+                break;
+              }
+            }
+          }
+          
+          // Set student info if found
+          if (studentData) {
+            this.studentInfo = {
+              college: studentData.college?.name || studentData.college || null,
+              year: studentData.year || null,
+              age: studentData.age || null,
+              phoneNumber: studentData.phoneNumber || null
+            };
+          } else {
+            // If student info not found in room data, try to load it separately
+            this.loadStudentInfo();
+          }
+        } else {
+          this.studentRoomInfo = null;
+          this.loadStudentInfo(); // Try to load student info even if room is not found
+        }
+        this.isLoadingRoomInfo = false;
+        requestAnimationFrame(() => {
+          this.cdr.markForCheck();
+        });
+      },
+      error: (error) => {
+        console.error('Error loading student room info:', error);
+        this.studentRoomInfo = null;
+        this.loadStudentInfo(); // Try to load student info even on error
+        this.isLoadingRoomInfo = false;
+        requestAnimationFrame(() => {
+          this.cdr.markForCheck();
+        });
+      }
+    });
+  }
+
+  loadStudentInfo() {
+    if (this.currentUser?.role !== 'student' || this.studentInfo) {
+      return; // Don't reload if already loaded
+    }
+    
+    // Try to get student info from student service
+    // First, we need to get the student ID
+    const user = this.authService.getCurrentUser();
+    if (!user) return;
+    
+    // Use HTTP directly to get current student profile
+    this.http.get(`${environment.apiUrl}/api/dashboard/check-student-profile`).subscribe({
+      next: (response: any) => {
+        if (response.success && response.studentId) {
+          // Get student details
+          this.studentService.getStudentById(response.studentId).subscribe({
+            next: (studentResponse: any) => {
+              if (studentResponse.success && studentResponse.data) {
+                const student = studentResponse.data;
+                this.studentInfo = {
+                  college: student.college?.name || student.college,
+                  year: student.year,
+                  age: student.age,
+                  phoneNumber: student.phoneNumber
+                };
+                requestAnimationFrame(() => {
+                  this.cdr.markForCheck();
+                });
+              }
+            },
+            error: (err) => {
+              console.error('Error loading student details:', err);
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error checking student profile:', err);
       }
     });
   }
@@ -270,15 +530,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   updateNextMealTime() {
+    let newNextMealTime = '';
     if (this.kitchenStatus?.isOpen && this.kitchenStatus?.currentMeal) {
       // If kitchen is open, show when it closes
-      this.nextMealTime = formatTime12Hour(this.kitchenStatus.currentMeal.endTime);
+      newNextMealTime = formatTime12Hour(this.kitchenStatus.currentMeal.endTime);
     } else if (this.kitchenStatus?.nextMeal) {
       // If kitchen is closed, show next meal time
-      this.nextMealTime = formatTime12Hour(this.kitchenStatus.nextMeal.startTime);
-    } else {
-      this.nextMealTime = '';
+      newNextMealTime = formatTime12Hour(this.kitchenStatus.nextMeal.startTime);
     }
+    
+    // Only update if value actually changed
+    if (newNextMealTime !== this.nextMealTime) {
+      this.nextMealTime = newNextMealTime;
+    }
+    
+    // Update countdown (it will handle its own change detection)
     this.updateCountdown();
   }
 
@@ -289,33 +555,55 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     const now = new Date();
+    const nowHours = now.getHours();
+    const nowMinutes = now.getMinutes();
     let targetTime: Date | null = null;
+    let shouldReload = false;
 
-    // If kitchen is open, countdown to when it closes
+    // Check if kitchen is open and has current meal
     if (this.kitchenStatus.isOpen && this.kitchenStatus.currentMeal) {
-      const endTimeStr = this.kitchenStatus.currentMeal.endTime;
-      const [hours, minutes, seconds] = endTimeStr.split(':').map(Number);
-      targetTime = new Date();
-      targetTime.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+      // If kitchen is open, countdown to when it closes
+      const [endHours, endMinutes] = this.kitchenStatus.currentMeal.endTime.split(':').map(Number);
       
-      // If the target time is earlier today, it means it's tomorrow
-      if (targetTime <= now) {
-        targetTime.setDate(targetTime.getDate() + 1);
+      // Check if we've reached or passed the exact end time (compare hours and minutes)
+      const endTimeToday = new Date();
+      endTimeToday.setHours(endHours, endMinutes, 0, 0);
+      const timeUntilEnd = endTimeToday.getTime() - now.getTime();
+      
+      // More precise check: if current time is at or past the end time
+      // Check by comparing hours and minutes directly
+      const isTimeReached = nowHours > endHours || (nowHours === endHours && nowMinutes >= endMinutes);
+      
+      if (isTimeReached || timeUntilEnd <= 0) {
+        // Time has been reached (at or past the exact time), reload immediately
+        shouldReload = true;
+        this.countdownTimer = { hours: 0, minutes: 0, seconds: 0 };
+      } else {
+        // Meal hasn't ended yet, countdown to end time
+        targetTime = endTimeToday;
+        
+        if (timeUntilEnd > 0) {
+          const totalSeconds = Math.floor(timeUntilEnd / 1000);
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          const seconds = totalSeconds % 60;
+          this.countdownTimer = { hours, minutes, seconds };
+        } else {
+          this.countdownTimer = { hours: 0, minutes: 0, seconds: 0 };
+          shouldReload = true;
+        }
       }
     } else if (this.kitchenStatus.nextMeal) {
       // If kitchen is closed, countdown to next meal
-      const startTimeStr = this.kitchenStatus.nextMeal.startTime;
-      const [hours, minutes, seconds] = startTimeStr.split(':').map(Number);
+      const [hours, minutes] = this.kitchenStatus.nextMeal.startTime.split(':').map(Number);
       targetTime = new Date();
-      targetTime.setHours(hours || 0, minutes || 0, seconds || 0, 0);
+      targetTime.setHours(hours, minutes, 0, 0);
       
       // If the target time is earlier today, it means it's tomorrow
       if (targetTime <= now) {
         targetTime.setDate(targetTime.getDate() + 1);
       }
-    }
-
-    if (targetTime) {
+      
       const diff = targetTime.getTime() - now.getTime();
       if (diff > 0) {
         const totalSeconds = Math.floor(diff / 1000);
@@ -324,12 +612,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
         const seconds = totalSeconds % 60;
         this.countdownTimer = { hours, minutes, seconds };
       } else {
+        // Countdown reached zero or negative
         this.countdownTimer = { hours: 0, minutes: 0, seconds: 0 };
-        // Reload kitchen status when countdown reaches zero
-        this.loadKitchenData();
+        shouldReload = true;
       }
     } else {
       this.countdownTimer = null;
+    }
+
+    // Reload kitchen status immediately when time is reached
+    if (shouldReload && !this.isReloadingKitchen) {
+      this.isReloadingKitchen = true;
+      // Reload in background using requestAnimationFrame for smoother updates
+      requestAnimationFrame(() => {
+        this.loadKitchenData();
+      });
     }
   }
 

@@ -2,7 +2,7 @@
 <div *ngIf="isMinimized" class="fixed bottom-4 left-4 z-50">
   <button
     (click)="toggleMinimize()"
-    class="bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+    class="bg-gray-700 text-white px-6 py-3 rounded-full shadow-lg hover:bg-gray-800 transition-colors flex items-center gap-2 border border-gray-600"
   >
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -17,7 +17,7 @@
 <!-- Chat Widget - Expanded State -->
 <div *ngIf="!isMinimized" class="fixed bottom-4 left-4 z-50 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col" style="direction: rtl;">
   <!-- Header -->
-  <div class="p-4 border-b border-gray-200 bg-blue-600 text-white rounded-t-lg flex items-center justify-between">
+  <div class="p-4 border-b border-gray-200 bg-gray-800 text-white rounded-t-lg flex items-center justify-between">
     <div>
       <h3 class="font-semibold">المحادثة مع الإدارة</h3>
       <p *ngIf="unreadCount > 0" class="text-xs text-blue-100 mt-1">
@@ -38,6 +38,7 @@
   <div
     #messagesContainer
     id="messagesContainer"
+    (scroll)="onScroll()"
     class="flex-1 overflow-y-auto p-4 space-y-3 space-y-reverse bg-gray-50 min-h-0"
     style="direction: rtl;"
   >
@@ -51,42 +52,118 @@
     </div>
 
     <div *ngFor="let message of messages" class="flex" [class.justify-end]="isMyMessage(message)" [class.justify-start]="!isMyMessage(message)">
-      <div
-        [class.bg-blue-600]="isMyMessage(message)"
-        [class.text-white]="isMyMessage(message)"
-        [class.bg-gray-200]="!isMyMessage(message)"
-        [class.text-gray-900]="!isMyMessage(message)"
-        [class.mr-auto]="!isMyMessage(message)"
-        [class.ml-auto]="isMyMessage(message)"
-        class="max-w-[75%] px-3 py-2 rounded-2xl shadow-sm text-sm"
-      >
-        <p class="whitespace-pre-wrap break-words">{{ message.content }}</p>
-        <p
-          [class.text-blue-100]="isMyMessage(message)"
-          [class.text-gray-500]="!isMyMessage(message)"
-          class="text-xs mt-1 text-left"
+      <div class="flex flex-col max-w-[75%]">
+        <div
+          [class.bg-gray-700]="isMyMessage(message)"
+          [class.text-white]="isMyMessage(message)"
+          [class.bg-gray-200]="!isMyMessage(message)"
+          [class.text-gray-900]="!isMyMessage(message)"
+          class="px-3 py-2 rounded-2xl shadow-sm text-sm"
         >
-          {{ formatTime(message.createdAt) }}
-        </p>
+          <!-- Attachment (Image) -->
+          <div *ngIf="message.attachmentUrl && message.attachmentType === 'image'" class="mb-2">
+            <img 
+              [src]="message.attachmentUrl" 
+              [alt]="message.attachmentName || 'صورة'"
+              class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              (click)="window.open(message.attachmentUrl, '_blank')"
+            />
+          </div>
+          
+          <!-- Attachment (File) -->
+          <div *ngIf="message.attachmentUrl && message.attachmentType === 'file'" class="mb-2 p-2 bg-gray-100 rounded-lg flex items-center gap-2">
+            <svg class="w-6 h-6 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-medium truncate">{{ message.attachmentName || 'ملف' }}</p>
+              <a 
+                [href]="message.attachmentUrl" 
+                target="_blank"
+                class="text-xs text-blue-500 hover:text-blue-700"
+              >
+                تحميل
+              </a>
+            </div>
+          </div>
+          
+          <!-- Message Content -->
+          <p *ngIf="message.content" class="whitespace-pre-wrap break-words">{{ message.content }}</p>
+        </div>
+        <!-- Time and Date below message -->
+        <div class="flex items-center gap-1 mt-1" [class.justify-end]="isMyMessage(message)" [class.justify-start]="!isMyMessage(message)">
+          <p
+            [class.text-gray-400]="isMyMessage(message)"
+            [class.text-gray-500]="!isMyMessage(message)"
+            class="text-xs"
+          >
+            {{ formatMessageDateTime(message.createdAt) }}
+          </p>
+          <span *ngIf="isMyMessage(message)" class="text-gray-400 text-xs mr-1">✓</span>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Message Input -->
   <div class="p-3 border-t border-gray-200 bg-white rounded-b-lg">
+    <!-- Selected File Preview -->
+    <div *ngIf="selectedFile" class="mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <div class="flex-shrink-0">
+          <svg *ngIf="selectedFile.type.startsWith('image/')" class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          <svg *ngIf="!selectedFile.type.startsWith('image/')" class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-medium text-gray-900 truncate">{{ selectedFile.name }}</p>
+          <p class="text-xs text-gray-500">{{ (selectedFile.size / 1024).toFixed(1) }} KB</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="removeSelectedFile()"
+        class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors mr-1"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
     <form (ngSubmit)="sendMessage()" class="flex gap-2" style="direction: rtl;">
-      <input
-        type="text"
-        [(ngModel)]="newMessage"
-        name="newMessage"
-        placeholder="اكتب رسالة..."
-        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-        [disabled]="isLoading || !conversation"
-      />
+      <div class="flex-1 relative">
+        <input
+          type="text"
+          [(ngModel)]="newMessage"
+          name="newMessage"
+          placeholder="اكتب رسالة..."
+          class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-gray-500 focus:border-gray-500 outline-none"
+          [disabled]="isLoading || !conversation"
+        />
+        <input
+          type="file"
+          id="fileInputWidget"
+          (change)="onFileSelected($event)"
+          accept="image/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.zip,.rar"
+          class="hidden"
+        />
+        <label
+          for="fileInputWidget"
+          class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+          </svg>
+        </label>
+      </div>
       <button
         type="submit"
-        [disabled]="!newMessage.trim() || isLoading || !conversation"
-        class="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+        [disabled]="(!newMessage.trim() && !selectedFile) || isLoading || !conversation"
+        class="px-4 py-2 bg-gray-700 text-white rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border border-gray-600"
       >
         <svg *ngIf="!isLoading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>

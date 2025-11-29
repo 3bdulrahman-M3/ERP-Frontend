@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ChatService, Message, Conversation } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
+import { ModalService } from '../../services/modal.service';
 import { interval, Subscription } from 'rxjs';
 
 @Component({
@@ -18,18 +19,23 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   conversation: Conversation | null = null;
   messages: Message[] = [];
   newMessage = '';
+  selectedFile: File | null = null;
   isLoading = false;
   currentUserRole: string = '';
   currentUserId: number = 0;
   unreadCount = 0;
-  isMinimized = false; // Widget opens by default
+  isMinimized = true; // Widget closed by default
+  window = window; // For template access
+  private shouldScrollToBottom = true; // Track if we should auto-scroll
+  private previousMessageCount = 0; // Track previous message count
   
   private refreshSubscription?: Subscription;
   private messagesRefreshSubscription?: Subscription;
 
   constructor(
     private chatService: ChatService,
-    private authService: AuthService
+    private authService: AuthService,
+    private modalService: ModalService
   ) {}
 
   ngOnInit() {
@@ -39,9 +45,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       this.currentUserId = user.id;
     }
     
-    this.loadConversation();
+    // Only load conversation when widget is opened
+    if (!this.isMinimized) {
+      this.loadConversation();
+    }
     
-    // Refresh messages every 2 seconds
+    // Refresh messages every 2 seconds (only when widget is open)
     this.messagesRefreshSubscription = interval(2000).subscribe(() => {
       if (this.conversation && !this.isMinimized) {
         this.loadMessages();
@@ -55,8 +64,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   }
 
   ngAfterViewChecked() {
-    if (!this.isMinimized) {
+    // Only scroll if user is at bottom or just sent a message
+    if (!this.isMinimized && this.shouldScrollToBottom) {
       this.scrollToBottom();
+      this.shouldScrollToBottom = false; // Reset after scrolling
     }
   }
 
@@ -80,6 +91,23 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     }
   }
 
+  isNearBottom(): boolean {
+    try {
+      if (!this.messagesContainer) return true;
+      const element = this.messagesContainer.nativeElement;
+      const threshold = 100; // 100px from bottom
+      const isNearBottom = element.scrollHeight - element.scrollTop - element.clientHeight < threshold;
+      return isNearBottom;
+    } catch (err) {
+      return true; // Default to true if we can't check
+    }
+  }
+
+  onScroll() {
+    // Update shouldScrollToBottom based on scroll position
+    this.shouldScrollToBottom = this.isNearBottom();
+  }
+
   loadConversation() {
     this.chatService.getOrCreateConversation().subscribe({
       next: (response: any) => {
@@ -97,10 +125,32 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   loadMessages() {
     if (!this.conversation) return;
 
+    // Check if user is near bottom before loading
+    const wasNearBottom = this.isNearBottom();
+    const previousScrollTop = this.messagesContainer?.nativeElement?.scrollTop || 0;
+    const previousScrollHeight = this.messagesContainer?.nativeElement?.scrollHeight || 0;
+
     this.chatService.getMessages(this.conversation.id, 1, 50).subscribe({
       next: (response: any) => {
         if (response.success) {
+          const newMessageCount = response.data.messages.length;
+          const hasNewMessages = newMessageCount > this.previousMessageCount;
+          this.previousMessageCount = newMessageCount;
+          
           this.messages = response.data.messages;
+          
+          // Use setTimeout to ensure DOM is updated before scrolling
+          setTimeout(() => {
+            if (wasNearBottom) {
+              // User was at bottom, scroll to show new messages
+              this.scrollToBottom();
+            } else {
+              // User is reading old messages, maintain scroll position
+              const currentScrollHeight = this.messagesContainer?.nativeElement?.scrollHeight || 0;
+              const scrollDiff = currentScrollHeight - previousScrollHeight;
+              this.messagesContainer.nativeElement.scrollTop = previousScrollTop + scrollDiff;
+            }
+          }, 0);
         }
       },
       error: (error: any) => {
@@ -109,14 +159,41 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     });
   }
 
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        this.modalService.showAlert({
+          title: 'تنبيه',
+          message: 'حجم الملف كبير جداً. الحد الأقصى 10 ميجابايت'
+        }).subscribe();
+        return;
+      }
+      this.selectedFile = file;
+      // Clear the input
+      event.target.value = '';
+    }
+  }
+
+  removeSelectedFile() {
+    this.selectedFile = null;
+  }
+
   sendMessage() {
-    if (!this.newMessage.trim() || !this.conversation) return;
+    if ((!this.newMessage.trim() && !this.selectedFile) || !this.conversation) return;
 
     this.isLoading = true;
-    this.chatService.sendMessage(this.conversation.id, this.newMessage.trim()).subscribe({
+    this.shouldScrollToBottom = true; // Always scroll when sending a message
+    this.chatService.sendMessage(
+      this.conversation.id, 
+      this.newMessage.trim() || '', 
+      this.selectedFile || undefined
+    ).subscribe({
       next: (response: any) => {
         if (response.success) {
           this.newMessage = '';
+          this.selectedFile = null;
           this.loadMessages();
           this.loadUnreadCount();
         }
@@ -124,6 +201,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       },
       error: (error: any) => {
         console.error('Error sending message:', error);
+        this.modalService.showAlert({
+          title: 'خطأ',
+          message: error.error?.message || 'حدث خطأ أثناء إرسال الرسالة'
+        }).subscribe();
         this.isLoading = false;
       }
     });
@@ -170,8 +251,56 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     });
   }
 
+  // Format date and time for messages (like WhatsApp)
+  formatMessageDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    
+    // Check if same day
+    const isToday = date.getDate() === now.getDate() &&
+                    date.getMonth() === now.getMonth() &&
+                    date.getFullYear() === now.getFullYear();
+    
+    const timeStr = date.toLocaleTimeString('ar-EG', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    if (isToday) {
+      // Show only time if same day
+      return timeStr;
+    } else {
+      // Show date and time if different day
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const isYesterday = date.getDate() === yesterday.getDate() &&
+                         date.getMonth() === yesterday.getMonth() &&
+                         date.getFullYear() === yesterday.getFullYear();
+      
+      if (isYesterday) {
+        return `أمس ${timeStr}`;
+      } else {
+        const dateStr = date.toLocaleDateString('ar-EG', {
+          month: 'short',
+          day: 'numeric'
+        });
+        return `${dateStr} ${timeStr}`;
+      }
+    }
+  }
+
   toggleMinimize() {
     this.isMinimized = !this.isMinimized;
+    // Load conversation and messages when opening the widget
+    if (!this.isMinimized && !this.conversation) {
+      this.shouldScrollToBottom = true; // Scroll to bottom when opening
+      this.loadConversation();
+    }
+    if (!this.isMinimized && this.conversation) {
+      this.shouldScrollToBottom = true; // Scroll to bottom when opening
+      this.loadMessages();
+    }
   }
 }
 

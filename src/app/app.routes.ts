@@ -5,12 +5,17 @@ import { roleGuard } from './guards/role.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/login',
-    pathMatch: 'full'
+    loadComponent: () => import('./components/landing/landing.component').then(m => m.LandingComponent)
   },
   {
     path: 'login',
     loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'complete-profile',
+    loadComponent: () => import('./components/complete-profile/complete-profile.component').then(m => m.CompleteProfileComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'student' }
   },
   {
     path: 'dashboard',
@@ -110,6 +115,18 @@ export const routes: Routes = [
   {
     path: 'dashboard/reports/check-in-out',
     loadComponent: () => import('./components/reports/check-in-out-report/check-in-out-report.component').then(m => m.CheckInOutReportComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/reports/financial',
+    loadComponent: () => import('./components/reports/financial-report/financial-report.component').then(m => m.FinancialReportComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
+    path: 'dashboard/registration-requests',
+    loadComponent: () => import('./components/registration-requests/registration-requests.component').then(m => m.RegistrationRequestsComponent),
     canActivate: [authGuard, roleGuard],
     data: { role: 'admin' }
   },

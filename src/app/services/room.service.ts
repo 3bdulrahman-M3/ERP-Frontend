@@ -3,6 +3,23 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export type PaymentStatus = 'paid' | 'partial' | 'unpaid';
+export type PaymentMethod = 'cash' | 'visa' | 'bank_transfer' | 'other';
+
+export interface PaymentInfo {
+  id: number;
+  roomId: number;
+  studentId: number;
+  roomStudentId: number;
+  amountDue: number;
+  amountPaid: number;
+  remainingAmount: number;
+  status: PaymentStatus;
+  paymentMethod: PaymentMethod;
+  paymentDate: string;
+  notes?: string | null;
+}
+
 export interface RoomStudent {
   id: number;
   roomId: number;
@@ -10,7 +27,8 @@ export interface RoomStudent {
   checkInDate: string;
   checkOutDate: string | null;
   isActive: boolean;
-  paid?: boolean;
+  payments?: PaymentInfo[];
+  payment?: PaymentInfo | null;
   student?: {
     id: number;
     name: string;
@@ -125,7 +143,14 @@ export interface AssignStudentRequest {
   roomId: number;
   studentId: number;
   checkInDate?: string;
-  paid?: boolean;
+  payment?: {
+    amountDue?: number | null;
+    amountPaid?: number | null;
+    paymentMethod?: PaymentMethod;
+    paymentDate?: string;
+    notes?: string | null;
+  };
+  forceCheckout?: boolean;
 }
 
 export interface CheckOutRequest {

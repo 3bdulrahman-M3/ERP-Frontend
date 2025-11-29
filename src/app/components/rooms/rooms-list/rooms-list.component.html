@@ -1,7 +1,7 @@
 <app-layout pageTitle="الغرف">
 <div class="p-4 space-y-3">
   <!-- Header -->
-  <div class="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg shadow-md p-4 text-white">
+  <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md p-4 text-white border border-gray-700">
     <div class="flex justify-between items-center">
       <div>
         <h2 class="text-xl font-bold mb-1 flex items-center">
@@ -12,7 +12,7 @@
       </div>
       <button
         (click)="addNewRoom()"
-        class="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-50 transition-colors flex items-center gap-2"
+        class="bg-white text-gray-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 border border-gray-300"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -30,7 +30,7 @@
         <label class="block text-xs font-medium text-gray-700 mb-1">الحالة</label>
         <select
           [(ngModel)]="statusFilter"
-          class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-500 focus:border-gray-500 outline-none text-sm"
         >
           <option value="">الكل</option>
           <option value="available">متاحة</option>
@@ -43,7 +43,7 @@
         <label class="block text-xs font-medium text-gray-700 mb-1">المبنى</label>
         <select
           [(ngModel)]="buildingFilter"
-          class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-500 focus:border-gray-500 outline-none text-sm"
         >
           <option [value]="null">الكل</option>
           <option *ngFor="let building of buildings" [value]="building.id">
@@ -57,13 +57,13 @@
           type="number"
           [(ngModel)]="floorFilter"
           placeholder="رقم الطابق"
-          class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+          class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-500 focus:border-gray-500 outline-none text-sm"
         />
       </div>
       <div class="flex items-end gap-2">
         <button
           (click)="applyFilters()"
-          class="bg-blue-600 text-white px-4 py-1.5 rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors flex-1"
+          class="bg-gray-700 text-white px-4 py-1.5 rounded-lg font-semibold text-sm hover:bg-gray-800 transition-colors flex-1 border border-gray-600"
         >
           تطبيق
         </button>
@@ -78,14 +78,14 @@
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 rounded-lg p-3">
-    <p class="text-sm text-red-600">{{ errorMessage }}</p>
+  <div *ngIf="errorMessage" class="bg-gray-50 border border-gray-300 rounded-lg p-3">
+    <p class="text-sm text-gray-700">{{ errorMessage }}</p>
   </div>
 
   <!-- Loading -->
-  <div *ngIf="isLoading" class="flex justify-center items-center py-8">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-  </div>
+      <div *ngIf="isLoading" class="flex justify-center items-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-700"></div>
+      </div>
 
   <!-- Rooms Grid -->
   <div *ngIf="!isLoading && rooms.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -118,7 +118,7 @@
         </div>
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-600">الأسرة المتاحة</span>
-          <span class="font-bold text-blue-600">{{ room.availableBeds }}</span>
+          <span class="font-bold text-gray-700">{{ room.availableBeds }}</span>
         </div>
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-600">الأسرة المشغولة</span>
@@ -126,13 +126,13 @@
         </div>
         <div *ngIf="room.pendingRequestsCount !== undefined && room.pendingRequestsCount > 0" class="flex items-center justify-between text-sm">
           <span class="text-gray-600">طلبات قيد الانتظار</span>
-          <span class="font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">{{ room.pendingRequestsCount }}</span>
+          <span class="font-bold text-gray-700 bg-gray-200 px-2 py-0.5 rounded">{{ room.pendingRequestsCount }}</span>
         </div>
       </div>
 
       <div class="w-full bg-gray-200 rounded-full h-1.5 mb-3">
         <div
-          class="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+          class="bg-gray-700 h-1.5 rounded-full transition-all duration-300"
           [style.width.%]="((room.totalBeds - room.availableBeds) / room.totalBeds) * 100"
         ></div>
       </div>
@@ -147,7 +147,7 @@
         <div class="flex flex-wrap gap-1">
           <span
             *ngFor="let service of room.services"
-            class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium"
+            class="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs font-medium"
           >
             {{ service.name }}
           </span>
@@ -157,19 +157,19 @@
       <div class="flex gap-2">
         <button
           (click)="viewRoom(room.id)"
-          class="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-xs transition-colors"
+          class="flex-1 px-3 py-1.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold text-xs transition-colors border border-gray-600"
         >
           عرض
         </button>
         <button
           (click)="editRoom(room.id)"
-          class="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-xs transition-colors"
+          class="flex-1 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold text-xs transition-colors"
         >
           تعديل
         </button>
         <button
           (click)="deleteRoom(room.id, room.roomNumber)"
-          class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-xs transition-colors"
+          class="px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-semibold text-xs transition-colors"
         >
           🗑️
         </button>
@@ -186,7 +186,7 @@
         id="pageSize"
         [(ngModel)]="limit"
         (ngModelChange)="onPageSizeChange()"
-        class="px-2 py-1 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+        class="px-2 py-1 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:ring-1 focus:ring-gray-500 focus:border-gray-500 outline-none"
       >
         <option [value]="5">5</option>
         <option [value]="10">10</option>
@@ -201,7 +201,7 @@
       <button
         (click)="goToPage(1)"
         [disabled]="currentPage === 1"
-        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-blue-50 hover:border-blue-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="الصفحة الأولى"
       >
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +211,7 @@
       <button
         (click)="goToPage(currentPage - 1)"
         [disabled]="currentPage === 1"
-        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-blue-50 hover:border-blue-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="السابق"
       >
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,8 +224,8 @@
         <button
           *ngFor="let page of getPageNumbers()"
           (click)="goToPage(page)"
-          [class.bg-blue-600.text-white.border-blue-600]="page === currentPage"
-          [class.bg-white.border-gray-300.text-gray-700.hover:bg-blue-50.hover:border-blue-300]="page !== currentPage"
+          [class.bg-gray-700.text-white.border-gray-700]="page === currentPage"
+          [class.bg-white.border-gray-300.text-gray-700.hover:bg-gray-50.hover:border-gray-400]="page !== currentPage"
           class="px-3 py-1 border rounded-lg text-xs font-semibold transition-colors min-w-[36px]"
         >
           {{ page }}
@@ -235,7 +235,7 @@
       <button
         (click)="goToPage(currentPage + 1)"
         [disabled]="currentPage === totalPages"
-        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-blue-50 hover:border-blue-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="التالي"
       >
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +245,7 @@
       <button
         (click)="goToPage(totalPages)"
         [disabled]="currentPage === totalPages"
-        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-blue-50 hover:border-blue-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="p-1.5 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 hover:border-gray-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="الصفحة الأخيرة"
       >
         <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +262,7 @@
     <p class="text-xs text-gray-500 mb-4">ابدأ بإضافة غرفة جديدة.</p>
     <button
       (click)="addNewRoom()"
-      class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+      class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-900 transition-colors inline-flex items-center gap-2"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />

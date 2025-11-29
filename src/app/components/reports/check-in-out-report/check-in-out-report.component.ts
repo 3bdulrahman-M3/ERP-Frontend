@@ -169,8 +169,8 @@ export class CheckInOutReportComponent implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     return status === 'checked_in' 
-      ? 'bg-green-100 text-green-800' 
-      : 'bg-red-100 text-red-800';
+      ? 'bg-gray-700 text-white' 
+      : 'bg-gray-400 text-white';
   }
 
   getStatusText(status: string): string {

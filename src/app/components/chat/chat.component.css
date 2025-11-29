@@ -1,18 +1,45 @@
 /* Custom scrollbar for messages */
-#messagesContainer::-webkit-scrollbar {
-  width: 6px;
+#messagesContainer::-webkit-scrollbar,
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
 }
 
-#messagesContainer::-webkit-scrollbar-track {
+#messagesContainer::-webkit-scrollbar-track,
+.custom-scrollbar::-webkit-scrollbar-track {
   background: #f1f1f1;
+  border-radius: 10px;
 }
 
-#messagesContainer::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 3px;
+#messagesContainer::-webkit-scrollbar-thumb,
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 10px;
+  transition: background 0.3s;
 }
 
-#messagesContainer::-webkit-scrollbar-thumb:hover {
-  background: #555;
+#messagesContainer::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Smooth animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Border utilities */
+.border-3 {
+  border-width: 3px;
 }
 

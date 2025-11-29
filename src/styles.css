@@ -26,21 +26,21 @@
   }
   
   .gradient-text {
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .btn-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
     transition: all 0.3s ease;
   }
   
   .btn-primary:hover {
-    background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 10px 20px rgba(31, 41, 55, 0.4);
   }
   
   .input-focus {
@@ -49,7 +49,7 @@
   
   .input-focus:focus {
     transform: scale(1.02);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(75, 85, 99, 0.1);
   }
   
   @keyframes slide-right {

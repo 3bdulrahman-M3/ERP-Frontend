@@ -1,0 +1,263 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
+  <!-- Header -->
+  <header class="bg-white shadow-md">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex items-center justify-center">
+          <span class="text-white text-2xl font-bold">🏠</span>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800">نظام إدارة السكن الجامعي</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <button
+          (click)="openRegisterModal()"
+          class="px-6 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors border border-gray-600"
+        >
+          تسجيل
+        </button>
+        <button
+          (click)="goToLogin()"
+          class="px-6 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-semibold transition-colors"
+        >
+          تسجيل الدخول
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="container mx-auto px-4 py-16">
+    <div class="text-center mb-16">
+      <h2 class="text-5xl font-bold text-gray-900 mb-4">نظام إدارة السكن الجامعي</h2>
+      <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+        نظام متكامل لإدارة السكن الجامعي يسهل على الطلاب والإدارة جميع العمليات اليومية
+      </p>
+      <div class="flex justify-center gap-4">
+        <button
+          (click)="openRegisterModal()"
+          class="px-8 py-4 bg-gray-800 hover:bg-gray-900 text-white rounded-xl font-bold text-lg transition-colors shadow-lg"
+        >
+          تسجيل الآن
+        </button>
+        <button
+          (click)="goToLogin()"
+          class="px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 rounded-xl font-bold text-lg transition-colors shadow-lg border-2 border-gray-300"
+        >
+          تسجيل الدخول
+        </button>
+      </div>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+      <!-- Feature 1 -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+          <span class="text-3xl">🏠</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">إدارة الغرف</h3>
+        <p class="text-gray-600">
+          عرض الغرف المتاحة وطلب الحجز بسهولة مع إمكانية اختيار الغرف حسب التفضيلات
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+          <span class="text-3xl">🍽️</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">إدارة المطبخ</h3>
+        <p class="text-gray-600">
+          متابعة حالة المطبخ ومواعيد الوجبات مع عد تنازلي للوقت المتبقي
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+          <span class="text-3xl">💳</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">نظام الدفع</h3>
+        <p class="text-gray-600">
+          إدارة المدفوعات والمتبقي مع تقارير مالية شاملة لجميع المعاملات
+        </p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+          <span class="text-3xl">📱</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">QR Code</h3>
+        <p class="text-gray-600">
+          تسجيل الدخول والخروج بسهولة باستخدام QR Code مع تتبع الحضور
+        </p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+          <span class="text-3xl">💬</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">المحادثات</h3>
+        <p class="text-gray-600">
+          التواصل المباشر مع الإدارة من خلال نظام محادثات متكامل
+        </p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mb-4 mx-auto">
+          <span class="text-3xl">🔔</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">الإشعارات</h3>
+        <p class="text-gray-600">
+          إشعارات فورية لجميع الأحداث المهمة مثل فتح المطبخ والغرف الجديدة
+        </p>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="bg-gradient-to-r from-gray-800 to-gray-900 rounded-2xl p-12 text-white text-center">
+      <h3 class="text-3xl font-bold mb-8">لماذا تختار نظامنا؟</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <div class="text-4xl font-bold mb-2">سهل الاستخدام</div>
+          <p class="text-gray-300">واجهة بسيطة وسهلة للطلاب والإدارة</p>
+        </div>
+        <div>
+          <div class="text-4xl font-bold mb-2">آمن</div>
+          <p class="text-gray-300">نظام آمن لحماية بياناتك</p>
+        </div>
+        <div>
+          <div class="text-4xl font-bold mb-2">متكامل</div>
+          <p class="text-gray-300">جميع الخدمات في مكان واحد</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-8 mt-16">
+    <div class="container mx-auto px-4 text-center">
+      <p class="text-gray-400">© 2024 نظام إدارة السكن الجامعي. جميع الحقوق محفوظة.</p>
+    </div>
+  </footer>
+
+  <!-- Register Modal -->
+  <div
+    *ngIf="showRegisterModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    (click)="closeRegisterModal()"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-2xl font-bold text-gray-900">تسجيل كطالب</h3>
+        <button
+          (click)="closeRegisterModal()"
+          class="text-gray-500 hover:text-gray-700 text-2xl"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="p-6">
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p class="text-sm text-red-600">{{ errorMessage }}</p>
+        </div>
+
+        <!-- Success Message -->
+        <div *ngIf="successMessage" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <p class="text-sm text-green-600">{{ successMessage }}</p>
+        </div>
+
+        <form (ngSubmit)="submitRegister()" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Name -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">الاسم الكامل *</label>
+              <input
+                type="text"
+                [(ngModel)]="registerData.name"
+                name="name"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                placeholder="أدخل اسمك الكامل"
+              />
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">البريد الإلكتروني *</label>
+              <input
+                type="email"
+                [(ngModel)]="registerData.email"
+                name="email"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                placeholder="example@email.com"
+              />
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">كلمة المرور *</label>
+              <input
+                type="password"
+                [(ngModel)]="registerData.password"
+                name="password"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                placeholder="6 أحرف على الأقل"
+              />
+            </div>
+
+            <!-- Confirm Password -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">تأكيد كلمة المرور *</label>
+              <input
+                type="password"
+                [(ngModel)]="registerData.confirmPassword"
+                name="confirmPassword"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                placeholder="أعد إدخال كلمة المرور"
+              />
+            </div>
+          </div>
+
+          <!-- Info Message -->
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p class="text-sm text-gray-700 text-center">
+              بعد التسجيل، سيُطلب منك استكمال بياناتك (الكلية والفرقة) للبدء في استخدام النظام
+            </p>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex gap-4 pt-4">
+            <button
+              type="submit"
+              [disabled]="isLoading"
+              class="flex-1 px-6 py-3 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
+            >
+              {{ isLoading ? 'جاري التسجيل...' : 'تسجيل' }}
+            </button>
+            <button
+              type="button"
+              (click)="closeRegisterModal()"
+              [disabled]="isLoading"
+              class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors disabled:opacity-50"
+            >
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+

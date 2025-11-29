@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StudentService, Student } from '../../../services/student.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { ModalService } from '../../../services/modal.service';
 
 @Component({
   selector: 'app-students-list',
@@ -23,7 +24,8 @@ export class StudentsListComponent implements OnInit {
 
   constructor(
     private studentService: StudentService,
-    private router: Router
+    private router: Router,
+    private modalService: ModalService
   ) {}
 
   ngOnInit() {
@@ -72,18 +74,28 @@ export class StudentsListComponent implements OnInit {
   }
 
   deleteStudent(id: number, name: string) {
-    if (confirm(`هل أنت متأكد من حذف الطالب "${name}"؟`)) {
-      this.studentService.deleteStudent(id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.loadStudents();
+    this.modalService.showConfirm({
+      title: 'تأكيد الحذف',
+      message: `هل أنت متأكد من حذف الطالب "${name}"؟`,
+      confirmText: 'حذف',
+      cancelText: 'إلغاء'
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        this.studentService.deleteStudent(id).subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.loadStudents();
+            }
+          },
+          error: (error) => {
+            this.modalService.showAlert({
+              title: 'خطأ',
+              message: error.error?.message || 'فشل حذف الطالب'
+            }).subscribe();
           }
-        },
-        error: (error) => {
-          alert(error.error?.message || 'فشل حذف الطالب');
-        }
-      });
-    }
+        });
+      }
+    });
   }
 
   addNewStudent() {

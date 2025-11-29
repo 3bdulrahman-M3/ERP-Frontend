@@ -5,6 +5,7 @@ import { StudentService, Student } from '../../../services/student.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { formatDateTime12Hour } from '../../../utils/time.util';
 import { environment } from '../../../../environments/environment';
+import { ModalService } from '../../../services/modal.service';
 
 @Component({
   selector: 'app-student-detail',
@@ -22,7 +23,8 @@ export class StudentDetailComponent implements OnInit {
   constructor(
     private studentService: StudentService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private modalService: ModalService
   ) {}
 
   ngOnInit() {
@@ -57,15 +59,27 @@ export class StudentDetailComponent implements OnInit {
   }
 
   deleteStudent() {
-    if (this.student && confirm(`هل أنت متأكد من حذف الطالب "${this.student.name}"؟`)) {
-      this.studentService.deleteStudent(this.student.id).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.router.navigate(['/dashboard/students']);
-          }
-        },
-        error: (error) => {
-          alert(error.error?.message || 'فشل حذف الطالب');
+    if (this.student) {
+      this.modalService.showConfirm({
+        title: 'تأكيد الحذف',
+        message: `هل أنت متأكد من حذف الطالب "${this.student.name}"؟`,
+        confirmText: 'حذف',
+        cancelText: 'إلغاء'
+      }).subscribe(confirmed => {
+        if (confirmed) {
+          this.studentService.deleteStudent(this.student!.id).subscribe({
+            next: (response) => {
+              if (response.success) {
+                this.router.navigate(['/dashboard/students']);
+              }
+            },
+            error: (error) => {
+              this.modalService.showAlert({
+                title: 'خطأ',
+                message: error.error?.message || 'فشل حذف الطالب'
+              }).subscribe();
+            }
+          });
         }
       });
     }
