@@ -1,0 +1,89 @@
+<app-layout pageTitle="Reviews Management">
+  <div class="p-6 space-y-6">
+    <!-- Header -->
+    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 text-white shadow-xl">
+      <h2 class="text-2xl font-bold mb-2">Reviews Management</h2>
+      <p class="text-white/90">Manage student reviews and comments</p>
+    </div>
+
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <p class="text-sm text-red-600">{{ errorMessage }}</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700"></div>
+      <p class="mt-4 text-gray-500">Loading reviews...</p>
+    </div>
+
+    <!-- Reviews List -->
+    <div *ngIf="!isLoading && filteredReviews.length > 0" class="space-y-4">
+      <div
+        *ngFor="let review of filteredReviews"
+        class="bg-white rounded-2xl shadow-lg p-6 border border-gray-200"
+      >
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                <span class="text-xl">👤</span>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900">
+                  {{ review.student?.user?.name || review.student?.name || 'Student' }}
+                </p>
+                <p class="text-sm text-gray-500">{{ formatDate(review.createdAt) }}</p>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="flex items-center gap-1">
+                <span *ngFor="let star of getStars(review.rating)" class="text-xl">{{ star }}</span>
+                <span class="ml-2 text-sm font-semibold text-gray-700">{{ review.rating }} / 5</span>
+              </div>
+            </div>
+            <p *ngIf="review.comment" class="text-gray-700 mb-3">{{ review.comment }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="deleteReview(review)"
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredReviews.length === 0" class="text-center py-12 bg-white rounded-2xl shadow-lg">
+      <div class="text-5xl mb-4">📝</div>
+      <p class="text-lg font-semibold text-gray-700 mb-2">No reviews found</p>
+      <p class="text-sm text-gray-500">No reviews available yet</p>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!isLoading && totalPages > 1" class="flex items-center justify-center gap-2">
+      <button
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+        class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Previous
+      </button>
+      <span class="px-4 py-2 text-gray-700">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+      <button
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+        class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</app-layout>
+

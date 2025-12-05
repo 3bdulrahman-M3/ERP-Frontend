@@ -47,13 +47,13 @@ export class CompleteProfileComponent implements OnInit {
         if (response.success) {
           this.colleges = response.data.colleges;
         } else {
-          this.errorMessage = response.message || 'فشل تحميل قائمة الكليات';
+          this.errorMessage = response.message || 'Failed to load colleges list';
         }
         this.isLoadingColleges = false;
       },
       error: (error) => {
         console.error('Error loading colleges:', error);
-        this.errorMessage = error.error?.message || 'فشل تحميل قائمة الكليات. تأكد من تسجيل الدخول.';
+        this.errorMessage = error.error?.message || 'Failed to load colleges list. Please make sure you are logged in.';
         this.isLoadingColleges = false;
       }
     });
@@ -64,7 +64,7 @@ export class CompleteProfileComponent implements OnInit {
 
     // Validation
     if (!this.profileData.collegeId || !this.profileData.year) {
-      this.errorMessage = 'الرجاء إدخال الكلية والفرقة';
+      this.errorMessage = 'Please enter college and year';
       return;
     }
 
@@ -81,12 +81,12 @@ export class CompleteProfileComponent implements OnInit {
           // Redirect to dashboard
           this.router.navigate(['/dashboard']);
         } else {
-          this.errorMessage = response.message || 'فشل استكمال البيانات';
+          this.errorMessage = response.message || 'Failed to complete profile';
         }
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'حدث خطأ أثناء استكمال البيانات';
+        this.errorMessage = error.error?.message || 'An error occurred while completing profile';
         this.isLoading = false;
       }
     });

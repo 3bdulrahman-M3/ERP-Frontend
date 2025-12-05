@@ -24,7 +24,7 @@ export class LoginComponent {
 
   onLogin() {
     if (!this.email || !this.password) {
-      this.errorMessage = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور';
+      this.errorMessage = 'Please enter email and password';
       return;
     }
 
@@ -40,7 +40,7 @@ export class LoginComponent {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'فشل تسجيل الدخول. الرجاء المحاولة مرة أخرى';
+        this.errorMessage = error.error?.message || 'Login failed. Please try again';
       }
     });
   }

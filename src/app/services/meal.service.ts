@@ -10,6 +10,7 @@ export interface Meal {
   endTime: string;
   isActive: boolean;
   category?: string;
+  image?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -70,11 +71,11 @@ export class MealService {
     return this.http.get<MealResponse>(`${this.apiUrl}/${id}`);
   }
 
-  createMeal(meal: { name: 'breakfast' | 'lunch' | 'dinner'; startTime: string; endTime: string; isActive?: boolean; category?: string }): Observable<MealResponse> {
+  createMeal(meal: { name: 'breakfast' | 'lunch' | 'dinner'; startTime: string; endTime: string; isActive?: boolean; category?: string; image?: string }): Observable<MealResponse> {
     return this.http.post<MealResponse>(this.apiUrl, meal);
   }
 
-  updateMeal(id: number, meal: { name?: 'breakfast' | 'lunch' | 'dinner'; startTime?: string; endTime?: string; isActive?: boolean; category?: string }): Observable<MealResponse> {
+  updateMeal(id: number, meal: { name?: 'breakfast' | 'lunch' | 'dinner'; startTime?: string; endTime?: string; isActive?: boolean; category?: string; image?: string }): Observable<MealResponse> {
     return this.http.put<MealResponse>(`${this.apiUrl}/${id}`, meal);
   }
 
@@ -84,6 +85,10 @@ export class MealService {
 
   getKitchenStatus(): Observable<KitchenStatusResponse> {
     return this.http.get<KitchenStatusResponse>(`${this.apiUrl}/status`);
+  }
+
+  getMeals(): Observable<MealsResponse> {
+    return this.http.get<MealsResponse>(`${this.apiUrl}?page=1&limit=100`);
   }
 }
 

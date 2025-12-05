@@ -165,6 +165,18 @@ export const routes: Routes = [
     data: { role: 'student' }
   },
   {
+    path: 'dashboard/my-review',
+    loadComponent: () => import('./components/reviews/student-review/student-review.component').then(m => m.StudentReviewComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'student' }
+  },
+  {
+    path: 'dashboard/reviews',
+    loadComponent: () => import('./components/reviews/admin-reviews/admin-reviews.component').then(m => m.AdminReviewsComponent),
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'admin' }
+  },
+  {
     path: 'unauthorized',
     loadComponent: () => import('./components/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   }

@@ -50,19 +50,19 @@ export class SettingsComponent implements OnInit {
     // Validate password if new password is provided
     if (this.formData.newPassword) {
       if (!this.formData.currentPassword) {
-        this.errorMessage = 'يجب إدخال كلمة المرور الحالية لتغيير كلمة المرور';
+        this.errorMessage = 'Current password is required to change password';
         this.isLoading = false;
         return;
       }
 
       if (this.formData.newPassword.length < 6) {
-        this.errorMessage = 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل';
+        this.errorMessage = 'New password must be at least 6 characters';
         this.isLoading = false;
         return;
       }
 
       if (this.formData.newPassword !== this.formData.confirmPassword) {
-        this.errorMessage = 'كلمة المرور الجديدة وتأكيد كلمة المرور غير متطابقين';
+        this.errorMessage = 'New password and confirm password do not match';
         this.isLoading = false;
         return;
       }
@@ -86,7 +86,7 @@ export class SettingsComponent implements OnInit {
     this.authService.updateProfile(updateData).subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.successMessage = 'تم تحديث البيانات بنجاح';
+          this.successMessage = 'Profile updated successfully';
           this.currentUser = response.data;
           // Clear password fields
           this.formData.currentPassword = '';
@@ -96,7 +96,7 @@ export class SettingsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error: any) => {
-        this.errorMessage = error.error?.message || 'حدث خطأ أثناء تحديث البيانات';
+        this.errorMessage = error.error?.message || 'An error occurred while updating profile';
         this.isLoading = false;
       }
     });
@@ -106,13 +106,13 @@ export class SettingsComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage = 'حجم الصورة يجب أن يكون أقل من 5MB';
+        this.errorMessage = 'Image size must be less than 5MB';
         return;
       }
 
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
-        this.errorMessage = 'يُسمح فقط بملفات الصور (JPEG, JPG, PNG, GIF, WEBP)';
+        this.errorMessage = 'Only image files are allowed (JPEG, JPG, PNG, GIF, WEBP)';
         return;
       }
 
@@ -124,14 +124,14 @@ export class SettingsComponent implements OnInit {
           this.uploadingProfileImage = false;
           if (response.success) {
             this.formData.profileImage = response.data.url;
-            this.successMessage = 'تم رفع الصورة الشخصية بنجاح';
+            this.successMessage = 'Profile image uploaded successfully';
           } else {
-            this.errorMessage = response.message || 'فشل رفع الصورة الشخصية';
+            this.errorMessage = response.message || 'Failed to upload profile image';
           }
         },
         error: (error: any) => {
           this.uploadingProfileImage = false;
-          this.errorMessage = error.error?.message || error.message || 'فشل رفع الصورة الشخصية';
+          this.errorMessage = error.error?.message || error.message || 'Failed to upload profile image';
         }
       });
     }
@@ -146,7 +146,7 @@ export class SettingsComponent implements OnInit {
       this.uploadService.deleteImage(filename).subscribe({
         next: () => {
           this.formData.profileImage = '';
-          this.successMessage = 'تم حذف الصورة الشخصية';
+          this.successMessage = 'Profile image deleted successfully';
         },
         error: (error: any) => {
           console.error('Error deleting image:', error);

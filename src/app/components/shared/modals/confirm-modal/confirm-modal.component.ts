@@ -15,8 +15,8 @@ export class ConfirmModalComponent implements OnInit, OnDestroy {
   data: ConfirmModalData = {
     title: '',
     message: '',
-    confirmText: 'تأكيد',
-    cancelText: 'إلغاء'
+    confirmText: 'Confirm',
+    cancelText: 'Cancel'
   };
   private subscription?: Subscription;
 
@@ -27,8 +27,8 @@ export class ConfirmModalComponent implements OnInit, OnDestroy {
       this.data = {
         title: data.title,
         message: data.message,
-        confirmText: data.confirmText || 'تأكيد',
-        cancelText: data.cancelText || 'إلغاء'
+        confirmText: data.confirmText || 'Confirm',
+        cancelText: data.cancelText || 'Cancel'
       };
       this.show = true;
     });

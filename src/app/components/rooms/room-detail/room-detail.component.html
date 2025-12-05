@@ -1,26 +1,26 @@
-<app-layout pageTitle="تفاصيل الغرفة">
+<app-layout pageTitle="Room Details">
 <div class="p-6 animate-fade-in">
   <!-- Header -->
   <div class="flex justify-between items-center mb-6 animate-slide-down">
-    <h2 class="text-4xl font-bold gradient-text">تفاصيل الغرفة</h2>
-    <div class="flex items-center space-x-3 space-x-reverse">
+    <h2 class="text-4xl font-bold gradient-text">Room Details</h2>
+    <div class="flex items-center space-x-3">
       <button
         (click)="goBack()"
         class="px-4 py-2 border border-gray-300 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition duration-200"
       >
-        رجوع
+        Back
       </button>
       <button
         (click)="editRoom()"
         class="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-xl font-bold transition duration-200"
       >
-        تعديل
+        Edit
       </button>
       <button
         (click)="deleteRoom()"
         class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition duration-200"
       >
-        حذف
+        Delete
       </button>
     </div>
   </div>
@@ -37,31 +37,91 @@
 
   <!-- Room Details -->
   <div *ngIf="!isLoading && room" class="space-y-6">
+    <!-- Room Images Slider - First Section -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-2xl font-bold text-gray-900">Room Images</h3>
+      </div>
+      <div class="relative">
+        <!-- Images Slider -->
+        <div *ngIf="room.images && isArray(room.images) && room.images.length > 0" class="overflow-hidden">
+          <div class="flex transition-transform duration-500 ease-in-out" [style.transform]="'translateX(-' + (currentImageIndex * 100) + '%)'">
+            <div *ngFor="let image of room.images" class="min-w-full">
+              <img 
+                [src]="getImageUrl(image)" 
+                [alt]="'Room ' + room.roomNumber" 
+                class="w-full h-96 object-contain bg-gray-50"
+                (error)="onImageError($event)"
+              >
+            </div>
+          </div>
+        </div>
+        <!-- Placeholder when no images -->
+        <div *ngIf="!room.images || !isArray(room.images) || room.images.length === 0" class="h-96 bg-gray-100 flex items-center justify-center">
+          <div class="text-center">
+            <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p class="text-gray-500 text-lg font-semibold">No Images Available</p>
+            <p class="text-gray-400 text-sm mt-2">Add images to this room to display them here</p>
+          </div>
+        </div>
+        <!-- Navigation Arrows -->
+        <button
+          *ngIf="room.images && isArray(room.images) && room.images.length > 1"
+          (click)="previousImage()"
+          class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <button
+          *ngIf="room.images && isArray(room.images) && room.images.length > 1"
+          (click)="nextImage()"
+          class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+        <!-- Image Indicators -->
+        <div *ngIf="room.images && isArray(room.images) && room.images.length > 1" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+          <button
+            *ngFor="let img of room.images; let i = index"
+            (click)="goToImage(i)"
+            [ngClass]="i === currentImageIndex ? 'bg-white' : 'bg-white/50'"
+            class="w-2 h-2 rounded-full transition-colors"
+          ></button>
+        </div>
+      </div>
+    </div>
+
     <!-- Room Info Card -->
     <div class="bg-white rounded-2xl shadow-xl p-6 card-hover animate-slide-up">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-bold text-gray-500 mb-1">رقم الغرفة</label>
+            <label class="block text-sm font-bold text-gray-500 mb-1">Room Number</label>
             <p class="text-2xl font-bold text-gray-900">{{ room.roomNumber }}</p>
           </div>
           <div *ngIf="room.buildingInfo">
-            <label class="block text-sm font-bold text-gray-500 mb-1">المبنى</label>
+            <label class="block text-sm font-bold text-gray-500 mb-1">Building</label>
             <p class="text-xl text-gray-900">{{ room.buildingInfo.name }}</p>
           </div>
           <div *ngIf="!room.buildingInfo">
-            <label class="block text-sm font-bold text-gray-500 mb-1">المبنى</label>
-            <p class="text-xl text-gray-400">غير محدد</p>
+            <label class="block text-sm font-bold text-gray-500 mb-1">Building</label>
+            <p class="text-xl text-gray-400">Not specified</p>
           </div>
           <div *ngIf="room.floor">
-            <label class="block text-sm font-bold text-gray-500 mb-1">الطابق</label>
+            <label class="block text-sm font-bold text-gray-500 mb-1">Floor</label>
             <p class="text-xl text-gray-900">{{ room.floor }}</p>
           </div>
         </div>
 
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-bold text-gray-500 mb-1">الحالة</label>
+            <label class="block text-sm font-bold text-gray-500 mb-1">Status</label>
             <span
               [class]="getStatusColor(room.status)"
               class="inline-block px-4 py-2 rounded-full text-white font-bold"
@@ -70,24 +130,24 @@
             </span>
           </div>
           <div>
-            <label class="block text-sm font-bold text-gray-500 mb-1">إجمالي الأسرة</label>
+            <label class="block text-sm font-bold text-gray-500 mb-1">Total Beds</label>
             <p class="text-2xl font-bold text-gray-900">{{ room.totalBeds }}</p>
           </div>
           <div>
-            <label class="block text-sm font-bold text-gray-500 mb-1">الأسرة المتاحة</label>
+            <label class="block text-sm font-bold text-gray-500 mb-1">Available Beds</label>
             <p class="text-2xl font-bold text-gray-700">{{ room.availableBeds }}</p>
           </div>
         </div>
       </div>
 
       <div *ngIf="room.description" class="mt-6 pt-6 border-t border-gray-200">
-        <label class="block text-sm font-bold text-gray-500 mb-2">الوصف</label>
+        <label class="block text-sm font-bold text-gray-500 mb-2">Description</label>
         <p class="text-gray-700">{{ room.description }}</p>
       </div>
 
       <!-- Services -->
       <div *ngIf="room.services && room.services.length > 0" class="mt-6 pt-6 border-t border-gray-200">
-        <label class="block text-sm font-bold text-gray-500 mb-3">الخدمات المتاحة</label>
+        <label class="block text-sm font-bold text-gray-500 mb-3">Available Services</label>
         <div class="flex flex-wrap gap-2">
           <span
             *ngFor="let service of room.services"
@@ -101,7 +161,7 @@
       <!-- Progress Bar -->
       <div class="mt-6">
         <div class="flex justify-between text-sm font-semibold text-gray-600 mb-2">
-          <span>معدل الإشغال</span>
+          <span>Occupancy Rate</span>
           <span>{{ Math.round(((room.totalBeds - room.availableBeds) / room.totalBeds) * 100) }}%</span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-3">
@@ -116,21 +176,21 @@
     <!-- Students Section -->
     <div class="bg-white rounded-2xl shadow-xl p-6 card-hover animate-slide-up">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold gradient-text">الطلاب في الغرفة</h3>
+        <h3 class="text-2xl font-bold gradient-text">Students in Room</h3>
         <button
           *ngIf="room.availableBeds > 0 && room.status !== 'maintenance'"
           (click)="openAssignModal()"
-          class="btn-primary px-6 py-3 text-white rounded-xl font-bold shadow-lg transition duration-200 flex items-center space-x-2 space-x-reverse"
+          class="btn-primary px-6 py-3 text-white rounded-xl font-bold shadow-lg transition duration-200 flex items-center space-x-2"
         >
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          <span>إسناد طالب</span>
+          <span>Assign Student</span>
         </button>
       </div>
 
       <div *ngIf="roomStudents.length === 0" class="text-center py-8">
-        <p class="text-gray-500">لا يوجد طلاب في هذه الغرفة</p>
+        <p class="text-gray-500">No students in this room</p>
       </div>
 
       <div *ngIf="roomStudents.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -145,7 +205,7 @@
               <ng-container *ngIf="roomStudent.student && roomStudent.student.college as college">
                 <p class="text-sm text-gray-600">
                   {{ college.name }}
-                  <span *ngIf="roomStudent.student?.year"> - الفرقة {{ roomStudent.student.year }}</span>
+                  <span *ngIf="roomStudent.student?.year"> - Year {{ roomStudent.student.year }}</span>
                 </p>
               </ng-container>
             </div>
@@ -153,43 +213,43 @@
               (click)="checkOutStudent(roomStudent.studentId, roomStudent.student?.name || '')"
               class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition duration-200"
             >
-              إخراج
+              Check Out
             </button>
           </div>
           <div class="text-xs text-gray-500">
-            <p>تاريخ الدخول: {{ roomStudent.checkInDate | date: 'yyyy-MM-dd' }}</p>
-            <p *ngIf="roomStudent.checkOutDate">تاريخ الخروج: {{ roomStudent.checkOutDate | date: 'yyyy-MM-dd' }}</p>
+            <p>Check-in Date: {{ roomStudent.checkInDate | date: 'yyyy-MM-dd' }}</p>
+            <p *ngIf="roomStudent.checkOutDate">Check-out Date: {{ roomStudent.checkOutDate | date: 'yyyy-MM-dd' }}</p>
           <div class="mt-4 bg-white rounded-xl border border-blue-100 p-4">
             <div class="flex items-center justify-between mb-4">
               <div>
-                <p class="text-xs text-gray-500 mb-1">حالة الدفع</p>
+                <p class="text-xs text-gray-500 mb-1">Payment Status</p>
                 <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="getPaymentStatusClass(roomStudent.payment?.status)">
                   {{ getPaymentStatusLabel(roomStudent.payment?.status) }}
                 </span>
               </div>
-              <div class="text-right">
-                <p class="text-xs text-gray-500 mb-1">طريقة الدفع</p>
+              <div class="text-left">
+                <p class="text-xs text-gray-500 mb-1">Payment Method</p>
                 <p class="text-sm font-semibold text-gray-800">
-                  {{ paymentMethodLabels[roomStudent.payment?.paymentMethod || 'cash'] || 'غير محدد' }}
+                  {{ paymentMethodLabels[roomStudent.payment?.paymentMethod || 'cash'] || 'Not Specified' }}
                 </p>
               </div>
             </div>
-            <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-center">
               <div class="bg-gray-50 rounded-lg py-3">
-                <p class="text-xs text-gray-500 mb-1">المستحق</p>
+                <p class="text-xs text-gray-500 mb-1">Amount Due</p>
                 <p class="text-lg font-bold text-gray-800">{{ formatCurrency(roomStudent.payment?.amountDue) }}</p>
               </div>
               <div class="bg-green-50 rounded-lg py-3">
-                <p class="text-xs text-gray-500 mb-1">المدفوع</p>
+                <p class="text-xs text-gray-500 mb-1">Amount Paid</p>
                 <p class="text-lg font-bold text-gray-800">{{ formatCurrency(roomStudent.payment?.amountPaid) }}</p>
               </div>
               <div class="bg-yellow-50 rounded-lg py-3">
-                <p class="text-xs text-gray-500 mb-1">المتبقي</p>
+                <p class="text-xs text-gray-500 mb-1">Remaining</p>
                 <p class="text-lg font-bold text-gray-800">{{ formatCurrency(roomStudent.payment?.remainingAmount) }}</p>
               </div>
             </div>
             <p class="text-xs text-gray-500 mt-3" *ngIf="roomStudent.payment?.paymentDate">
-              آخر تحديث: {{ roomStudent.payment?.paymentDate | date: 'yyyy-MM-dd HH:mm' }}
+              Last Updated: {{ roomStudent.payment?.paymentDate | date: 'yyyy-MM-dd HH:mm' }}
             </p>
             <button
               *ngIf="roomStudent.payment && roomStudent.payment.id"
@@ -199,7 +259,7 @@
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
-              <span>إضافة دفعة إضافية</span>
+              <span>Add Additional Payment</span>
             </button>
           </div>
           </div>
@@ -210,7 +270,7 @@
     <!-- Room Requests Section -->
     <div class="bg-white rounded-2xl shadow-xl p-6 card-hover animate-slide-up">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-bold gradient-text">طلبات الغرفة</h3>
+        <h3 class="text-2xl font-bold gradient-text">Room Requests</h3>
       </div>
 
       <div *ngIf="isLoadingRequests" class="text-center py-8">
@@ -218,7 +278,7 @@
       </div>
 
       <div *ngIf="!isLoadingRequests && roomRequests.length === 0" class="text-center py-8">
-        <p class="text-gray-500">لا توجد طلبات للغرفة</p>
+        <p class="text-gray-500">No room requests</p>
       </div>
 
       <div *ngIf="!isLoadingRequests && roomRequests.length > 0" class="space-y-4">
@@ -228,7 +288,7 @@
         >
           <div class="flex justify-between items-start mb-3">
             <div class="flex-1">
-              <h4 class="font-bold text-gray-900 mb-1">{{ request.student?.name || 'طالب غير معروف' }}</h4>
+              <h4 class="font-bold text-gray-900 mb-1">{{ request.student?.name || 'Unknown Student' }}</h4>
               <p class="text-sm text-gray-600 mb-1">{{ request.student?.email || '' }}</p>
               <ng-container *ngIf="request.student && request.student.college as college">
                 <p class="text-sm text-gray-600">{{ college.name }}</p>
@@ -241,7 +301,7 @@
             </span>
           </div>
           <div *ngIf="request.notes" class="mb-3">
-            <p class="text-sm text-gray-600"><span class="font-semibold">ملاحظات:</span> {{ request.notes }}</p>
+            <p class="text-sm text-gray-600"><span class="font-semibold">Notes:</span> {{ request.notes }}</p>
           </div>
           <div class="flex justify-between items-center">
             <p class="text-xs text-gray-500">
@@ -252,13 +312,13 @@
                 (click)="acceptRequest(request.id)"
                 class="px-3 py-1 bg-gray-700 hover:bg-gray-800 text-white rounded-lg text-sm font-semibold transition duration-200"
               >
-                قبول
+                Accept
               </button>
               <button
                 (click)="rejectRequest(request.id)"
                 class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition duration-200"
               >
-                رفض
+                Reject
               </button>
             </div>
           </div>
@@ -272,17 +332,17 @@
           [disabled]="currentPage === 1"
           class="px-4 py-2 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          السابق
+          Previous
         </button>
         <span class="px-4 py-2 text-gray-700">
-          صفحة {{ currentPage }} من {{ totalPages }}
+          Page {{ currentPage }} of {{ totalPages }}
         </span>
         <button
           (click)="loadRoomRequests(room!.id, currentPage + 1)"
           [disabled]="currentPage === totalPages"
           class="px-4 py-2 bg-white border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          التالي
+          Next
         </button>
       </div>
     </div>
@@ -298,15 +358,15 @@
       class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
       (click)="$event.stopPropagation()"
     >
-      <h3 class="text-2xl font-bold text-gray-800 mb-6">إسناد طالب للغرفة</h3>
+      <h3 class="text-2xl font-bold text-gray-800 mb-6">Assign Student to Room</h3>
       
       <div class="mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">اختر الطالب</label>
+        <label class="block text-sm font-bold text-gray-700 mb-2">Select Student</label>
         <select
           [(ngModel)]="selectedStudentId"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         >
-          <option [value]="null">-- اختر طالب --</option>
+          <option [value]="null">-- Select Student --</option>
           <option *ngFor="let student of availableStudents" [value]="student.id">
             {{ student.name }} - {{ student.email }}
           </option>
@@ -315,31 +375,31 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label class="block text-sm font-bold text-gray-700 mb-2">المبلغ المستحق</label>
+          <label class="block text-sm font-bold text-gray-700 mb-2">Amount Due</label>
           <input
             type="number"
             min="0"
             step="0.01"
             [(ngModel)]="paymentAmountDue"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            placeholder="مثال: 1500"
+            placeholder="Example: 1500"
           />
         </div>
         <div>
-          <label class="block text-sm font-bold text-gray-700 mb-2">المبلغ المدفوع</label>
+          <label class="block text-sm font-bold text-gray-700 mb-2">Amount Paid</label>
           <input
             type="number"
             min="0"
             step="0.01"
             [(ngModel)]="paymentAmountPaid"
             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            placeholder="مثال: 1500"
+            placeholder="Example: 1500"
           />
         </div>
       </div>
 
       <div class="mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">طريقة الدفع</label>
+        <label class="block text-sm font-bold text-gray-700 mb-2">Payment Method</label>
         <select
           [(ngModel)]="paymentMethod"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
@@ -355,13 +415,13 @@
           (click)="closeAssignModal()"
           class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition duration-200"
         >
-          إلغاء
+          Cancel
         </button>
         <button
           (click)="assignStudent()"
           class="btn-primary flex-1 px-4 py-3 text-white rounded-xl font-bold transition duration-200"
         >
-          إسناد
+          Assign
         </button>
       </div>
     </div>
@@ -377,22 +437,22 @@
       class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 animate-scale-in"
       (click)="$event.stopPropagation()"
     >
-      <h3 class="text-2xl font-bold text-gray-800 mb-6">إضافة دفعة إضافية</h3>
+      <h3 class="text-2xl font-bold text-gray-800 mb-6">Add Additional Payment</h3>
       
       <div class="mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">المبلغ الإضافي (ج.م)</label>
+        <label class="block text-sm font-bold text-gray-700 mb-2">Additional Amount ($)</label>
         <input
           type="number"
           [(ngModel)]="additionalPaymentAmount"
           min="0.01"
           step="0.01"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          placeholder="أدخل المبلغ"
+          placeholder="Enter amount"
         />
       </div>
 
       <div class="mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">طريقة الدفع</label>
+        <label class="block text-sm font-bold text-gray-700 mb-2">Payment Method</label>
         <select
           [(ngModel)]="additionalPaymentMethod"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
@@ -404,12 +464,12 @@
       </div>
 
       <div class="mb-6">
-        <label class="block text-sm font-bold text-gray-700 mb-2">ملاحظات (اختياري)</label>
+        <label class="block text-sm font-bold text-gray-700 mb-2">Notes (optional)</label>
         <textarea
           [(ngModel)]="additionalPaymentNotes"
           rows="3"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          placeholder="أضف ملاحظات عن هذه الدفعة..."
+          placeholder="Add notes about this payment..."
         ></textarea>
       </div>
 
@@ -418,13 +478,13 @@
           (click)="closeAddPaymentModal()"
           class="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition duration-200"
         >
-          إلغاء
+          Cancel
         </button>
         <button
           (click)="addPayment()"
           class="btn-primary flex-1 px-4 py-3 text-white rounded-xl font-bold transition duration-200"
         >
-          إضافة الدفعة
+          Add Payment
         </button>
       </div>
     </div>

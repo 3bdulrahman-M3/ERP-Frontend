@@ -2,8 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { firstValueFrom } from 'rxjs';
 import { BuildingService, Building } from '../../../services/building.service';
+import { UploadService } from '../../../services/upload.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-buildings-list',
@@ -17,6 +20,7 @@ export class BuildingsListComponent implements OnInit {
   showAddModal = false;
   showEditModal = false;
   showDeleteModal = false;
+  showViewModal = false;
   selectedBuilding: Building | null = null;
   isLoading = false;
   errorMessage = '';
@@ -31,9 +35,13 @@ export class BuildingsListComponent implements OnInit {
     mapUrl: '',
     floors: ''
   };
+  selectedImage: string | null = null;
+  imageFile: File | null = null;
+  isUploadingImage = false;
 
   constructor(
     private buildingService: BuildingService,
+    private uploadService: UploadService,
     private sanitizer: DomSanitizer
   ) {}
 
@@ -133,6 +141,8 @@ export class BuildingsListComponent implements OnInit {
       mapUrl: '',
       floors: ''
     };
+    this.selectedImage = null;
+    this.imageFile = null;
     this.showAddModal = true;
   }
 
@@ -148,7 +158,8 @@ export class BuildingsListComponent implements OnInit {
       mapUrl: building.mapUrl || '',
       floors: building.floors?.toString() || ''
     };
-    
+    this.selectedImage = building.image || null;
+    this.imageFile = null;
     this.showEditModal = true;
   }
 
@@ -167,18 +178,40 @@ export class BuildingsListComponent implements OnInit {
     this.selectedBuilding = null;
   }
 
-  addBuilding() {
+  async addBuilding() {
     if (!this.formData.name.trim()) {
       this.errorMessage = 'الرجاء إدخال اسم المبنى';
       return;
     }
 
     this.isLoading = true;
+    let imageUrl: string | undefined = undefined;
+
+    // Upload image if selected
+    if (this.imageFile) {
+      this.isUploadingImage = true;
+      try {
+        const result = await firstValueFrom(this.uploadService.uploadImage(this.imageFile));
+        if (result.success) {
+          imageUrl = result.data.url;
+        }
+      } catch (error) {
+        this.isLoading = false;
+        this.isUploadingImage = false;
+        this.errorMessage = 'Failed to upload image';
+        return;
+      }
+      this.isUploadingImage = false;
+    } else if (this.selectedImage) {
+      imageUrl = this.selectedImage;
+    }
+
     const buildingData: any = {
       name: this.formData.name,
       address: this.formData.address || undefined,
       mapUrl: this.formData.mapUrl || undefined,
-      floors: this.formData.floors ? parseInt(this.formData.floors) : undefined
+      floors: this.formData.floors ? parseInt(this.formData.floors) : undefined,
+      image: imageUrl
     };
 
     this.buildingService.createBuilding(buildingData).subscribe({
@@ -196,18 +229,40 @@ export class BuildingsListComponent implements OnInit {
     });
   }
 
-  updateBuilding() {
+  async updateBuilding() {
     if (!this.selectedBuilding || !this.formData.name.trim()) {
       this.errorMessage = 'الرجاء إدخال اسم المبنى';
       return;
     }
 
     this.isLoading = true;
+    let imageUrl: string | undefined = undefined;
+
+    // Upload image if new file selected
+    if (this.imageFile) {
+      this.isUploadingImage = true;
+      try {
+        const result = await firstValueFrom(this.uploadService.uploadImage(this.imageFile));
+        if (result.success) {
+          imageUrl = result.data.url;
+        }
+      } catch (error) {
+        this.isLoading = false;
+        this.isUploadingImage = false;
+        this.errorMessage = 'Failed to upload image';
+        return;
+      }
+      this.isUploadingImage = false;
+    } else if (this.selectedImage) {
+      imageUrl = this.selectedImage;
+    }
+
     const buildingData: any = {
       name: this.formData.name,
       address: this.formData.address || undefined,
       mapUrl: this.formData.mapUrl || undefined,
-      floors: this.formData.floors ? parseInt(this.formData.floors) : undefined
+      floors: this.formData.floors ? parseInt(this.formData.floors) : undefined,
+      image: imageUrl
     };
 
     this.buildingService.updateBuilding(this.selectedBuilding.id, buildingData).subscribe({
@@ -275,6 +330,60 @@ export class BuildingsListComponent implements OnInit {
 
   get Math() {
     return Math;
+  }
+
+  onImageSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.type.startsWith('image/')) {
+        this.imageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.selectedImage = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  }
+
+  removeImage() {
+    this.selectedImage = null;
+    this.imageFile = null;
+  }
+
+  viewBuilding(building: Building) {
+    this.selectedBuilding = building;
+    this.showViewModal = true;
+  }
+
+  closeViewModal() {
+    this.showViewModal = false;
+    this.selectedBuilding = null;
+  }
+
+  getBuildingImageUrl(image: string | null | undefined): string | null {
+    if (!image) return null;
+    
+    // If it's already a full URL, return it as is
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    
+    // If it starts with /uploads, add the API URL
+    if (image.startsWith('/uploads/')) {
+      return `${environment.apiUrl}${image}`;
+    }
+    
+    // Otherwise, assume it's a filename and construct the URL
+    return `${environment.apiUrl}/uploads/${image}`;
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+    }
   }
 }
 

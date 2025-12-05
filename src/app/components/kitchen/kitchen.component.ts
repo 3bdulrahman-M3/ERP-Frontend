@@ -22,9 +22,9 @@ export class KitchenComponent implements OnInit, OnDestroy {
   private isReloading = false; // Flag to prevent multiple simultaneous reloads
   
   mealNames: { [key: string]: string } = {
-    breakfast: 'الإفطار',
-    lunch: 'الغداء',
-    dinner: 'العشاء'
+    breakfast: 'Breakfast',
+    lunch: 'Lunch',
+    dinner: 'Dinner'
   };
 
   constructor(private mealService: MealService) {}

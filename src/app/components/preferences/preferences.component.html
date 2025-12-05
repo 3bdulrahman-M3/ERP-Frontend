@@ -1,9 +1,9 @@
-<app-layout pageTitle="التفضيلات">
+<app-layout pageTitle="Preferences">
   <div class="p-6 animate-fade-in">
     <!-- Header -->
     <div class="mb-6">
-      <h2 class="text-4xl font-bold gradient-text">تفضيلاتي</h2>
-      <p class="text-gray-600 mt-2">اختر تفضيلاتك للغرف والخدمات لتلقي إشعارات عند توفرها.</p>
+      <h2 class="text-4xl font-bold gradient-text">My Preferences</h2>
+      <p class="text-gray-600 mt-2">Choose your preferences for rooms and services to receive notifications when they become available.</p>
     </div>
 
     <!-- Success Message -->
@@ -25,7 +25,7 @@
     <form *ngIf="!isLoading" (ngSubmit)="onSubmit()" class="bg-white rounded-2xl shadow-xl p-8 animate-slide-up">
       <!-- Room Type Preference -->
       <div class="mb-8">
-        <h3 class="text-2xl font-bold text-gray-800 mb-4">نوع الغرفة المفضل</h3>
+        <h3 class="text-2xl font-bold text-gray-800 mb-4">Preferred Room Type</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label
             [class.border-blue-600]="preferences.roomType === 'single'"
@@ -41,8 +41,8 @@
               class="w-5 h-5 text-blue-600 focus:ring-blue-500"
             />
             <div class="mr-4">
-              <div class="text-xl font-bold text-gray-900">غرفة فردية</div>
-              <div class="text-sm text-gray-600 mt-1">غرفة خاصة بك فقط</div>
+              <div class="text-xl font-bold text-gray-900">Single Room</div>
+              <div class="text-sm text-gray-600 mt-1">A room for you only</div>
             </div>
           </label>
 
@@ -60,8 +60,8 @@
               class="w-5 h-5 text-blue-600 focus:ring-blue-500"
             />
             <div class="mr-4">
-              <div class="text-xl font-bold text-gray-900">غرفة جماعية</div>
-              <div class="text-sm text-gray-600 mt-1">غرفة مشتركة مع طلاب آخرين</div>
+              <div class="text-xl font-bold text-gray-900">Shared Room</div>
+              <div class="text-sm text-gray-600 mt-1">A room shared with other students</div>
             </div>
           </label>
         </div>
@@ -69,11 +69,11 @@
 
       <!-- Preferred Services -->
       <div class="mb-8">
-        <h3 class="text-2xl font-bold text-gray-800 mb-4">الخدمات المفضلة</h3>
-        <p class="text-sm text-gray-600 mb-4">اختر الخدمات التي تفضلها في الغرفة</p>
+        <h3 class="text-2xl font-bold text-gray-800 mb-4">Preferred Services</h3>
+        <p class="text-sm text-gray-600 mb-4">Choose the services you prefer in the room</p>
         
         <div *ngIf="services.length === 0" class="text-center py-8 text-gray-500">
-          لا توجد خدمات متاحة حالياً
+          No services available at the moment
         </div>
 
         <div *ngIf="services.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -103,15 +103,15 @@
         <button
           type="submit"
           [disabled]="isSaving"
-          class="btn-primary px-6 py-3 text-white rounded-xl font-bold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x-reverse"
+          class="btn-primary px-6 py-3 text-white rounded-xl font-bold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x"
         >
-          <span *ngIf="!isSaving">حفظ التفضيلات</span>
+          <span *ngIf="!isSaving">Save Preferences</span>
           <span *ngIf="isSaving" class="flex items-center">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            جاري الحفظ...
+            Saving...
           </span>
         </button>
       </div>

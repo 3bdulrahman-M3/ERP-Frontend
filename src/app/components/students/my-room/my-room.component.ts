@@ -51,15 +51,15 @@ export class MyRoomComponent implements OnInit {
   errorMessage = '';
   currentStudentId: number | null = null;
   paymentMethodLabels: Record<string, string> = {
-    cash: 'نقدي',
-    visa: 'فيزا',
-    bank_transfer: 'تحويل بنكي',
-    other: 'أخرى'
+    cash: 'Cash',
+    visa: 'Visa',
+    bank_transfer: 'Bank Transfer',
+    other: 'Other'
   };
   paymentStatusLabels: Record<string, string> = {
-    paid: 'تم الدفع',
-    partial: 'مدفوع جزئياً',
-    unpaid: 'لم يتم الدفع'
+    paid: 'Paid',
+    partial: 'Partially Paid',
+    unpaid: 'Unpaid'
   };
 
   constructor(
@@ -70,7 +70,7 @@ export class MyRoomComponent implements OnInit {
   ) {}
 
   getPaymentStatusLabel(status?: string | null): string {
-    return this.paymentStatusLabels[status || ''] || 'غير محدد';
+    return this.paymentStatusLabels[status || ''] || 'Not Specified';
   }
 
   getPaymentStatusClass(status?: string | null): string {
@@ -88,7 +88,7 @@ export class MyRoomComponent implements OnInit {
 
   formatCurrency(value?: number | string | null): string {
     const numericValue = Number(value ?? 0);
-    return `${numericValue.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ج.م`;
+    return `$${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   ngOnInit() {
@@ -98,7 +98,7 @@ export class MyRoomComponent implements OnInit {
   loadCurrentStudent() {
     const user = this.authService.getCurrentUser();
     if (!user || user.role !== 'student') {
-      this.errorMessage = 'يجب تسجيل الدخول كطالب أولاً';
+      this.errorMessage = 'You must be logged in as a student';
       this.isLoading = false;
       return;
     }
@@ -116,12 +116,12 @@ export class MyRoomComponent implements OnInit {
         if (response.success && response.data) {
           this.roomData = response.data;
         } else {
-          this.errorMessage = 'لم يتم تعيينك في أي غرفة';
+          this.errorMessage = 'You have not been assigned to any room';
         }
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'فشل تحميل بيانات الغرفة';
+        this.errorMessage = error.error?.message || 'Failed to load room data';
       }
     });
   }

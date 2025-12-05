@@ -283,7 +283,7 @@
     </div>
 
     <!-- Form Actions -->
-    <div class="mt-6 flex items-center justify-end space-x-4 space-x-reverse">
+    <div class="mt-6 flex items-center justify-end space-x-4 space-x">
       <button
         type="button"
         (click)="cancel()"
@@ -294,7 +294,7 @@
       <button
         type="submit"
         [disabled]="isLoading"
-        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x-reverse"
+        class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 space-x"
       >
         <span *ngIf="!isLoading">{{ isEditMode ? 'تحديث' : 'إضافة' }}</span>
         <span *ngIf="isLoading" class="flex items-center">

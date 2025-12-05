@@ -11,6 +11,7 @@ export interface Building {
   floors?: number;
   roomCount?: number;
   studentCount?: number;
+  image?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -42,6 +43,7 @@ export interface CreateBuildingRequest {
   address?: string;
   mapUrl?: string;
   floors?: number;
+  image?: string;
 }
 
 export interface UpdateBuildingRequest {
@@ -49,6 +51,7 @@ export interface UpdateBuildingRequest {
   address?: string;
   mapUrl?: string;
   floors?: number;
+  image?: string;
 }
 
 @Injectable({
@@ -77,5 +80,9 @@ export class BuildingService {
 
   deleteBuilding(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  getBuildings(): Observable<BuildingsResponse> {
+    return this.http.get<BuildingsResponse>(`${this.apiUrl}?page=1&limit=100`);
   }
 }

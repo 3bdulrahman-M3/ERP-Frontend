@@ -76,6 +76,7 @@ export interface Room {
   roomPrice?: number | string;
   bedPrice?: number | string;
   description: string | null;
+  images?: string[];
   occupiedBeds?: number;
   hasPendingRequest?: boolean;
   requestStatus?: 'pending' | 'accepted' | 'rejected' | null;
@@ -124,6 +125,7 @@ export interface CreateRoomRequest {
   description?: string;
   status?: 'available' | 'occupied' | 'maintenance' | 'reserved';
   serviceIds?: number[];
+  images?: string[];
 }
 
 export interface UpdateRoomRequest {
@@ -137,6 +139,7 @@ export interface UpdateRoomRequest {
   description?: string;
   status?: 'available' | 'occupied' | 'maintenance' | 'reserved';
   serviceIds?: number[];
+  images?: string[];
 }
 
 export interface AssignStudentRequest {

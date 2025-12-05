@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { RoomService, CreateRoomRequest, UpdateRoomRequest } from '../../../services/room.service';
 import { ServiceService, Service } from '../../../services/service.service';
 import { BuildingService, Building } from '../../../services/building.service';
+import { UploadService } from '../../../services/upload.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 
 @Component({
@@ -24,6 +26,9 @@ export class RoomFormComponent implements OnInit {
   buildings: Building[] = [];
   services: Service[] = [];
   selectedServiceIds: number[] = [];
+  selectedImages: string[] = [];
+  imageFiles: File[] = [];
+  isUploadingImages = false;
 
   formData = {
     roomNumber: '',
@@ -41,6 +46,7 @@ export class RoomFormComponent implements OnInit {
     private roomService: RoomService,
     private serviceService: ServiceService,
     private buildingService: BuildingService,
+    private uploadService: UploadService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -114,6 +120,26 @@ export class RoomFormComponent implements OnInit {
           };
           // Load selected services
           this.selectedServiceIds = room.services ? room.services.map(s => s.id) : [];
+          // Load images
+          if (room.images) {
+            // Parse images if it's a JSON string
+            let images = room.images;
+            if (typeof images === 'string') {
+              try {
+                images = JSON.parse(images);
+              } catch (e) {
+                images = [];
+              }
+            }
+            if (Array.isArray(images)) {
+              this.selectedImages = images.filter(img => img && typeof img === 'string' && !img.startsWith('data:'));
+            } else {
+              this.selectedImages = [];
+            }
+          } else {
+            this.selectedImages = [];
+          }
+          this.imageFiles = [];
         }
       },
       error: (error) => {
@@ -123,7 +149,7 @@ export class RoomFormComponent implements OnInit {
     });
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (!this.validateForm()) {
       return;
     }
@@ -131,6 +157,35 @@ export class RoomFormComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
+
+    // Upload images first
+    // Separate existing URLs from new base64 images
+    const existingUrls = this.selectedImages.filter(img => 
+      typeof img === 'string' && !img.startsWith('data:') && (img.startsWith('http') || img.startsWith('/'))
+    );
+    
+    let imageUrls: string[] = [...existingUrls];
+    
+    if (this.imageFiles.length > 0) {
+      this.isUploadingImages = true;
+      try {
+        const uploadPromises = this.imageFiles.map(file => 
+          firstValueFrom(this.uploadService.uploadImage(file))
+        );
+        const uploadResults = await Promise.all(uploadPromises);
+        const newUrls = uploadResults
+          .filter(result => result && result.success)
+          .map(result => result.data.url);
+        imageUrls = [...imageUrls, ...newUrls];
+      } catch (error) {
+        console.error('Error uploading images:', error);
+        this.isLoading = false;
+        this.isUploadingImages = false;
+        this.errorMessage = 'Failed to upload images: ' + (error instanceof Error ? error.message : 'Unknown error');
+        return;
+      }
+      this.isUploadingImages = false;
+    }
 
     if (this.isEditMode && this.roomId) {
       const updateData: UpdateRoomRequest = {
@@ -143,7 +198,8 @@ export class RoomFormComponent implements OnInit {
         bedPrice: this.formData.bedPrice || undefined,
         description: this.formData.description || undefined,
         status: this.formData.status,
-        serviceIds: this.selectedServiceIds
+        serviceIds: this.selectedServiceIds,
+        images: imageUrls.length > 0 ? imageUrls : undefined
       };
 
       this.roomService.updateRoom(this.roomId, updateData).subscribe({
@@ -172,7 +228,8 @@ export class RoomFormComponent implements OnInit {
         bedPrice: this.formData.bedPrice || undefined,
         description: this.formData.description || undefined,
         status: this.formData.status,
-        serviceIds: this.selectedServiceIds
+        serviceIds: this.selectedServiceIds,
+        images: imageUrls.length > 0 ? imageUrls : undefined
       };
 
       this.roomService.createRoom(createData).subscribe({
@@ -242,6 +299,53 @@ export class RoomFormComponent implements OnInit {
       this.selectedServiceIds.splice(index, 1);
     } else {
       this.selectedServiceIds.push(serviceId);
+    }
+  }
+
+  onImageSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const files = Array.from(input.files);
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          this.imageFiles.push(file);
+          const reader = new FileReader();
+          reader.onload = (e: any) => {
+            this.selectedImages.push(e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  }
+
+  removeImage(index: number) {
+    // Count existing URLs (not base64)
+    const existingCount = this.selectedImages.filter(img => 
+      typeof img === 'string' && !img.startsWith('data:')
+    ).length;
+    
+    if (index < existingCount) {
+      // Remove existing image URL
+      const urlIndex = this.selectedImages.findIndex((img, i) => 
+        i === index && typeof img === 'string' && !img.startsWith('data:')
+      );
+      if (urlIndex !== -1) {
+        this.selectedImages.splice(urlIndex, 1);
+      }
+    } else {
+      // Remove new image (base64)
+      const base64Index = index - existingCount;
+      if (base64Index >= 0 && base64Index < this.imageFiles.length) {
+        this.imageFiles.splice(base64Index, 1);
+        // Remove the corresponding base64 from selectedImages
+        const base64InSelected = this.selectedImages.findIndex((img, i) => 
+          i >= existingCount && typeof img === 'string' && img.startsWith('data:')
+        );
+        if (base64InSelected !== -1) {
+          this.selectedImages.splice(base64InSelected, 1);
+        }
+      }
     }
   }
 }

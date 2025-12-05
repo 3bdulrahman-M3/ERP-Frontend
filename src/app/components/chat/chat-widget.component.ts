@@ -165,8 +165,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       // Check file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
         this.modalService.showAlert({
-          title: 'تنبيه',
-          message: 'حجم الملف كبير جداً. الحد الأقصى 10 ميجابايت'
+          title: 'Warning',
+          message: 'File size is too large. Maximum size is 10MB'
         }).subscribe();
         return;
       }
@@ -202,8 +202,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       error: (error: any) => {
         console.error('Error sending message:', error);
         this.modalService.showAlert({
-          title: 'خطأ',
-          message: error.error?.message || 'حدث خطأ أثناء إرسال الرسالة'
+          title: 'Error',
+          message: error.error?.message || 'An error occurred while sending the message'
         }).subscribe();
         this.isLoading = false;
       }
@@ -233,16 +233,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     
-    if (minutes < 1) return 'الآن';
-    if (minutes < 60) return `منذ ${minutes} دقيقة`;
+    if (minutes < 1) return 'Now';
+    if (minutes < 60) return `${minutes} min ago`;
     
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `منذ ${hours} ساعة`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
     
     const days = Math.floor(hours / 24);
-    if (days < 7) return `منذ ${days} يوم`;
+    if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
     
-    return date.toLocaleDateString('ar-EG', { 
+    return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'short', 
       day: 'numeric',
@@ -261,7 +261,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
                     date.getMonth() === now.getMonth() &&
                     date.getFullYear() === now.getFullYear();
     
-    const timeStr = date.toLocaleTimeString('ar-EG', {
+    const timeStr = date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
@@ -279,9 +279,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
                          date.getFullYear() === yesterday.getFullYear();
       
       if (isYesterday) {
-        return `أمس ${timeStr}`;
+        return `Yesterday ${timeStr}`;
       } else {
-        const dateStr = date.toLocaleDateString('ar-EG', {
+        const dateStr = date.toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric'
         });

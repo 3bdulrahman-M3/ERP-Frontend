@@ -44,7 +44,7 @@ export class PreferencesComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'فشل تحميل التفضيلات';
+        this.errorMessage = error.error?.message || 'Failed to load preferences';
         this.isLoading = false;
       }
     });
@@ -54,14 +54,14 @@ export class PreferencesComponent implements OnInit {
     this.serviceService.getAllServices(1, 100).subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          // الخدمات تأتي من قاعدة البيانات
+          // Services come from the database
           this.services = response.data.services || [];
           console.log('Loaded services from database:', this.services);
         }
       },
       error: (error) => {
         console.error('Error loading services:', error);
-        this.errorMessage = 'فشل تحميل الخدمات من قاعدة البيانات';
+        this.errorMessage = 'Failed to load services from database';
       }
     });
   }
@@ -91,13 +91,13 @@ export class PreferencesComponent implements OnInit {
     this.preferenceService.updatePreferences(this.preferences).subscribe({
       next: (response) => {
         if (response.success) {
-          this.successMessage = 'تم حفظ التفضيلات بنجاح';
+          this.successMessage = 'Preferences saved successfully';
           this.preferences = response.data;
         }
         this.isSaving = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'فشل حفظ التفضيلات';
+        this.errorMessage = error.error?.message || 'Failed to save preferences';
         this.isSaving = false;
       }
     });

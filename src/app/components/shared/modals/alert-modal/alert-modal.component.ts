@@ -15,7 +15,7 @@ export class AlertModalComponent implements OnInit, OnDestroy {
   data: AlertModalData = {
     title: '',
     message: '',
-    buttonText: 'حسناً'
+    buttonText: 'OK'
   };
   private subscription?: Subscription;
 
@@ -26,7 +26,7 @@ export class AlertModalComponent implements OnInit, OnDestroy {
       this.data = {
         title: data.title,
         message: data.message,
-        buttonText: data.buttonText || 'حسناً'
+        buttonText: data.buttonText || 'OK'
       };
       this.show = true;
     });

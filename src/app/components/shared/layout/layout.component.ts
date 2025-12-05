@@ -13,7 +13,7 @@ import { NotificationsComponent } from '../../notifications/notifications.compon
   styleUrl: './layout.component.css'
 })
 export class LayoutComponent implements OnInit, OnDestroy {
-  @Input() pageTitle = 'لوحة التحكم';
+  @Input() pageTitle = 'Dashboard';
   
   currentUser: User | null = null;
   isSidebarOpen = true;
@@ -32,24 +32,26 @@ export class LayoutComponent implements OnInit, OnDestroy {
     const isStudent = this.currentUser.role === 'student';
     
     const allItems = [
-      { icon: '📊', label: 'لوحة التحكم', route: '/dashboard', active: false, adminOnly: false, studentOnly: false },
-      { icon: '🎓', label: 'الطلاب', route: '/dashboard/students', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🏠', label: 'الغرف', route: '/dashboard/rooms', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🏠', label: 'الغرف المتاحة', route: '/dashboard/available-rooms', active: false, adminOnly: false, studentOnly: true },
-      { icon: '🏢', label: 'المباني', route: '/dashboard/buildings', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🏛️', label: 'الكليات', route: '/dashboard/colleges', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🍽️', label: 'الوجبات', route: '/dashboard/meals', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🔧', label: 'الخدمات', route: '/dashboard/services', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🍴', label: 'المطعم', route: '/dashboard/kitchen', active: false, adminOnly: false, studentOnly: true },
-      { icon: '📋', label: 'سجل الدخول والخروج', route: '/dashboard/student-check-in-out', active: false, adminOnly: false, studentOnly: true },
-      { icon: '💬', label: 'المحادثات', route: '/dashboard/chat', active: false, adminOnly: true, studentOnly: false },
-      { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false, hasSubmenu: true },
-      { icon: '📷', label: 'تسجيل الدخول/الخروج', route: '/dashboard/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '📊', label: 'سجل الدخول والخروج', route: '/dashboard/reports/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '💰', label: 'التقرير المالي', route: '/dashboard/reports/financial', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '⭐', label: 'التفضيلات', route: '/dashboard/preferences', active: false, adminOnly: false, studentOnly: true },
-      { icon: '🏠', label: 'غرفتي', route: '/dashboard/my-room', active: false, adminOnly: false, studentOnly: true },
-      { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
+      { icon: '📊', label: 'Dashboard', route: '/dashboard', active: false, adminOnly: false, studentOnly: false },
+      { icon: '🎓', label: 'Students', route: '/dashboard/students', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏠', label: 'Rooms', route: '/dashboard/rooms', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏠', label: 'Available Rooms', route: '/dashboard/available-rooms', active: false, adminOnly: false, studentOnly: true },
+      { icon: '🏢', label: 'Buildings', route: '/dashboard/buildings', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏛️', label: 'Colleges', route: '/dashboard/colleges', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🍽️', label: 'Meals', route: '/dashboard/meals', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🔧', label: 'Services', route: '/dashboard/services', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🍴', label: 'Kitchen', route: '/dashboard/kitchen', active: false, adminOnly: false, studentOnly: true },
+      { icon: '📋', label: 'Check In/Out History', route: '/dashboard/student-check-in-out', active: false, adminOnly: false, studentOnly: true },
+      { icon: '⭐', label: 'My Review', route: '/dashboard/my-review', active: false, adminOnly: false, studentOnly: true },
+      { icon: '⭐', label: 'Reviews', route: '/dashboard/reviews', active: false, adminOnly: true, studentOnly: false },
+      { icon: '💬', label: 'Chat', route: '/dashboard/chat', active: false, adminOnly: true, studentOnly: false },
+      { icon: '📝', label: 'Reports', route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false, hasSubmenu: true },
+      { icon: '📷', label: 'Check In/Out', route: '/dashboard/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '📊', label: 'Check In/Out Report', route: '/dashboard/reports/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '💰', label: 'Financial Report', route: '/dashboard/reports/financial', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '⭐', label: 'Preferences', route: '/dashboard/preferences', active: false, adminOnly: false, studentOnly: true },
+      { icon: '🏠', label: 'My Room', route: '/dashboard/my-room', active: false, adminOnly: false, studentOnly: true },
+      { icon: '⚙️', label: 'Settings', route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
     ];
     
     const mainItems: typeof allItems = [];

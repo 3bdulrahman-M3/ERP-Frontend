@@ -82,7 +82,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error loading records:', error);
-        this.errorMessage = 'فشل تحميل السجلات';
+        this.errorMessage = 'Failed to load records';
         this.isLoading = false;
       }
     });
@@ -117,7 +117,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
         }
       ).catch((err: any) => {
         console.error('Error starting QR scanner:', err);
-        this.errorMessage = 'فشل تشغيل الكاميرا. تأكد من السماح بالوصول إلى الكاميرا.';
+        this.errorMessage = 'Failed to start camera. Please allow camera access.';
         this.isScanning = false;
         this.showScanner = false;
       });
@@ -161,7 +161,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'فشل تسجيل الدخول/الخروج';
+        this.errorMessage = error.error?.message || 'Failed to check in/out';
         this.isLoading = false;
         
         // Clear error after 5 seconds
@@ -194,7 +194,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   formatDateTime(dateTime: string | null): string {
     if (!dateTime) return '-';
     const date = new Date(dateTime);
-    return date.toLocaleString('ar-EG', {
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -205,7 +205,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
 
   formatDate(date: string): string {
     const d = new Date(date);
-    return d.toLocaleDateString('ar-EG');
+    return d.toLocaleDateString('en-US');
   }
 
   getStatusBadgeClass(status: string): string {
@@ -215,7 +215,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   }
 
   getStatusText(status: string): string {
-    return status === 'checked_in' ? 'داخل' : 'خارج';
+    return status === 'checked_in' ? 'Checked In' : 'Checked Out';
   }
 }
 

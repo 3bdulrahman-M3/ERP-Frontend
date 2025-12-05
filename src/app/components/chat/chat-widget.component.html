@@ -7,7 +7,7 @@
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
     </svg>
-    <span>المحادثة</span>
+    <span>Chat</span>
     <span *ngIf="unreadCount > 0" class="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
       {{ unreadCount }}
     </span>
@@ -15,13 +15,13 @@
 </div>
 
 <!-- Chat Widget - Expanded State -->
-<div *ngIf="!isMinimized" class="fixed bottom-4 left-4 z-50 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col" style="direction: rtl;">
+<div *ngIf="!isMinimized" class="fixed bottom-4 left-4 z-50 w-96 h-[500px] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col" style="direction: ltr;">
   <!-- Header -->
   <div class="p-4 border-b border-gray-200 bg-gray-800 text-white rounded-t-lg flex items-center justify-between">
     <div>
-      <h3 class="font-semibold">المحادثة مع الإدارة</h3>
+      <h3 class="font-semibold">Chat with Administration</h3>
       <p *ngIf="unreadCount > 0" class="text-xs text-blue-100 mt-1">
-        {{ unreadCount }} رسالة غير مقروءة
+        {{ unreadCount }} unread message{{ unreadCount > 1 ? 's' : '' }}
       </p>
     </div>
     <button
@@ -39,16 +39,16 @@
     #messagesContainer
     id="messagesContainer"
     (scroll)="onScroll()"
-    class="flex-1 overflow-y-auto p-4 space-y-3 space-y-reverse bg-gray-50 min-h-0"
-    style="direction: rtl;"
+    class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 min-h-0"
+    style="direction: ltr;"
   >
     <div *ngIf="!conversation" class="text-center text-gray-500 py-8">
-      <p>جاري تحميل المحادثة...</p>
+      <p>Loading conversation...</p>
     </div>
     
     <div *ngIf="conversation && messages.length === 0" class="text-center text-gray-500 py-8">
-      <p>لا توجد رسائل بعد</p>
-      <p class="text-sm mt-2">ابدأ المحادثة مع الإدارة</p>
+      <p>No messages yet</p>
+      <p class="text-sm mt-2">Start a conversation with administration</p>
     </div>
 
     <div *ngFor="let message of messages" class="flex" [class.justify-end]="isMyMessage(message)" [class.justify-start]="!isMyMessage(message)">
@@ -64,7 +64,7 @@
           <div *ngIf="message.attachmentUrl && message.attachmentType === 'image'" class="mb-2">
             <img 
               [src]="message.attachmentUrl" 
-              [alt]="message.attachmentName || 'صورة'"
+              [alt]="message.attachmentName || 'Image'"
               class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               (click)="window.open(message.attachmentUrl, '_blank')"
             />
@@ -76,13 +76,13 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium truncate">{{ message.attachmentName || 'ملف' }}</p>
+              <p class="text-xs font-medium truncate">{{ message.attachmentName || 'File' }}</p>
               <a 
                 [href]="message.attachmentUrl" 
                 target="_blank"
                 class="text-xs text-blue-500 hover:text-blue-700"
               >
-                تحميل
+                Download
               </a>
             </div>
           </div>
@@ -134,13 +134,13 @@
       </button>
     </div>
     
-    <form (ngSubmit)="sendMessage()" class="flex gap-2" style="direction: rtl;">
+    <form (ngSubmit)="sendMessage()" class="flex gap-2" style="direction: ltr;">
       <div class="flex-1 relative">
         <input
           type="text"
           [(ngModel)]="newMessage"
           name="newMessage"
-          placeholder="اكتب رسالة..."
+          placeholder="Type a message..."
           class="w-full px-3 py-2 pr-10 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-gray-500 focus:border-gray-500 outline-none"
           [disabled]="isLoading || !conversation"
         />
@@ -171,7 +171,7 @@
         <span *ngIf="isLoading" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
       </button>
     </form>
-    <p *ngIf="!conversation" class="text-xs text-gray-500 mt-2 text-center">جاري تحميل المحادثة...</p>
+    <p *ngIf="!conversation" class="text-xs text-gray-500 mt-2 text-center">Loading conversation...</p>
   </div>
 </div>
 

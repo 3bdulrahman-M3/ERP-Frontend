@@ -54,7 +54,7 @@ export class StudentCheckInOutComponent implements OnInit {
   formatDateTime(dateTime: string | null): string {
     if (!dateTime) return '-';
     const date = new Date(dateTime);
-    return date.toLocaleString('ar-EG', {
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -65,7 +65,7 @@ export class StudentCheckInOutComponent implements OnInit {
 
   formatDate(date: string): string {
     const d = new Date(date);
-    return d.toLocaleDateString('ar-EG');
+    return d.toLocaleDateString('en-US');
   }
 
   getStatusBadgeClass(status: string): string {
@@ -75,7 +75,7 @@ export class StudentCheckInOutComponent implements OnInit {
   }
 
   getStatusText(status: string): string {
-    return status === 'checked_in' ? 'داخل' : 'خارج';
+    return status === 'checked_in' ? 'Checked In' : 'Checked Out';
   }
 }
 

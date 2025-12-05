@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { MealService, Meal } from '../../../services/meal.service';
+import { UploadService } from '../../../services/upload.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { formatTime12Hour } from '../../../utils/time.util';
 
@@ -32,14 +34,20 @@ export class MealsListComponent implements OnInit {
     isActive: true,
     category: ''
   };
+  selectedImage: string | null = null;
+  imageFile: File | null = null;
+  isUploadingImage = false;
 
   mealNames = {
-    breakfast: 'الإفطار',
-    lunch: 'الغداء',
-    dinner: 'العشاء'
+    breakfast: 'Breakfast',
+    lunch: 'Lunch',
+    dinner: 'Dinner'
   };
 
-  constructor(private mealService: MealService) {}
+  constructor(
+    private mealService: MealService,
+    private uploadService: UploadService
+  ) {}
 
   ngOnInit() {
     this.loadMeals();
@@ -59,7 +67,7 @@ export class MealsListComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'حدث خطأ أثناء تحميل الوجبات';
+        this.errorMessage = error.error?.message || 'An error occurred while loading meals';
         this.isLoading = false;
       }
     });
@@ -73,6 +81,8 @@ export class MealsListComponent implements OnInit {
       isActive: true,
       category: ''
     };
+    this.selectedImage = null;
+    this.imageFile = null;
     this.showAddModal = true;
   }
 
@@ -85,6 +95,8 @@ export class MealsListComponent implements OnInit {
       isActive: meal.isActive,
       category: meal.category || ''
     };
+    this.selectedImage = meal.image || null;
+    this.imageFile = null;
     this.showEditModal = true;
   }
 
@@ -100,9 +112,28 @@ export class MealsListComponent implements OnInit {
     this.selectedMeal = null;
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (!this.validateForm()) {
       return;
+    }
+
+    // Upload image if selected
+    let imageUrl: string | undefined = undefined;
+    if (this.imageFile) {
+      this.isUploadingImage = true;
+      try {
+        const result = await firstValueFrom(this.uploadService.uploadImage(this.imageFile));
+        if (result.success) {
+          imageUrl = result.data.url;
+        }
+      } catch (error) {
+        this.isUploadingImage = false;
+        this.errorMessage = 'Failed to upload image';
+        return;
+      }
+      this.isUploadingImage = false;
+    } else if (this.selectedImage) {
+      imageUrl = this.selectedImage;
     }
 
     // Convert time to HH:mm:ss format
@@ -115,14 +146,15 @@ export class MealsListComponent implements OnInit {
         startTime,
         endTime,
         isActive: this.formData.isActive,
-        category: this.formData.category
+        category: this.formData.category,
+        image: imageUrl
       }).subscribe({
         next: () => {
           this.loadMeals();
           this.closeModals();
         },
         error: (error) => {
-          this.errorMessage = error.error?.message || 'حدث خطأ أثناء إضافة الوجبة';
+          this.errorMessage = error.error?.message || 'An error occurred while adding the meal';
         }
       });
     } else if (this.showEditModal && this.selectedMeal) {
@@ -131,14 +163,15 @@ export class MealsListComponent implements OnInit {
         startTime,
         endTime,
         isActive: this.formData.isActive,
-        category: this.formData.category
+        category: this.formData.category,
+        image: imageUrl
       }).subscribe({
         next: () => {
           this.loadMeals();
           this.closeModals();
         },
         error: (error) => {
-          this.errorMessage = error.error?.message || 'حدث خطأ أثناء تحديث الوجبة';
+          this.errorMessage = error.error?.message || 'An error occurred while updating the meal';
         }
       });
     }
@@ -153,21 +186,21 @@ export class MealsListComponent implements OnInit {
         this.closeModals();
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'حدث خطأ أثناء حذف الوجبة';
+        this.errorMessage = error.error?.message || 'An error occurred while deleting the meal';
       }
     });
   }
 
   validateForm(): boolean {
     if (!this.formData.startTime || !this.formData.endTime) {
-      this.errorMessage = 'يرجى إدخال وقت البدء ووقت الانتهاء';
+      this.errorMessage = 'Please enter start time and end time';
       return false;
     }
 
     // Validate time format
     const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(this.formData.startTime) || !timeRegex.test(this.formData.endTime)) {
-      this.errorMessage = 'تنسيق الوقت غير صحيح. استخدم الصيغة HH:mm';
+      this.errorMessage = 'Invalid time format. Use HH:mm format';
       return false;
     }
 
@@ -178,7 +211,7 @@ export class MealsListComponent implements OnInit {
     const endTotal = endH * 60 + endM;
 
     if (endTotal <= startTotal) {
-      this.errorMessage = 'وقت الانتهاء يجب أن يكون بعد وقت البدء';
+      this.errorMessage = 'End time must be after start time';
       return false;
     }
 
@@ -192,6 +225,26 @@ export class MealsListComponent implements OnInit {
 
   formatTime(time: string): string {
     return formatTime12Hour(time);
+  }
+
+  onImageSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (file.type.startsWith('image/')) {
+        this.imageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          this.selectedImage = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  }
+
+  removeImage() {
+    this.selectedImage = null;
+    this.imageFile = null;
   }
 
   goToPage(page: number) {

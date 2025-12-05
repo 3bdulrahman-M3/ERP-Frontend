@@ -23,14 +23,14 @@ npm start
 
 ## المميزات
 
-- ✅ تسجيل الدخول مع API Backend
+- ✅ Register الدخول مع API Backend
 - ✅ Dashboard مع Navbar و Sidebar
 - ✅ تصميم حديث باستخدام Tailwind CSS
 - ✅ دعم اللغة العربية (RTL)
 - ✅ حماية الصفحات (Auth Guards)
 - ✅ Token Refresh تلقائي
 
-## بيانات تسجيل الدخول الافتراضية
+## بيانات Register الدخول الافتراضية
 
 - Email: `admin@erp.com`
 - Password: `admin123`
@@ -41,7 +41,7 @@ npm start
 src/
 ├── app/
 │   ├── components/
-│   │   ├── login/          # صفحة تسجيل الدخول
+│   │   ├── login/          # صفحة Register الدخول
 │   │   ├── dashboard/      # لوحة التحكم
 │   │   └── unauthorized/   # صفحة غير مصرح
 │   ├── guards/             # Auth Guards

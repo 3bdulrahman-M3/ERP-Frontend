@@ -8,6 +8,7 @@ import { RoomRequestService, RoomRequest } from '../../../services/room-request.
 import { PaymentService } from '../../../services/payment.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { ModalService } from '../../../services/modal.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-room-detail',
@@ -36,17 +37,18 @@ export class RoomDetailComponent implements OnInit {
   availableStudents: any[] = [];
   currentPage = 1;
   totalPages = 1;
+  currentImageIndex = 0;
   paymentMethodOptions = [
-    { value: 'cash', label: 'نقدي' },
-    { value: 'visa', label: 'فيزا' },
-    { value: 'bank_transfer', label: 'تحويل بنكي' },
-    { value: 'other', label: 'أخرى' }
+    { value: 'cash', label: 'Cash' },
+    { value: 'visa', label: 'Visa' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'other', label: 'Other' }
   ];
   paymentMethodLabels: Record<string, string> = {
-    cash: 'نقدي',
-    visa: 'فيزا',
-    bank_transfer: 'تحويل بنكي',
-    other: 'أخرى'
+    cash: 'Cash',
+    visa: 'Visa',
+    bank_transfer: 'Bank Transfer',
+    other: 'Other'
   };
 
   constructor(
@@ -80,11 +82,11 @@ export class RoomDetailComponent implements OnInit {
 
   getPaymentStatusLabel(status?: string | null): string {
     const labels: Record<string, string> = {
-      paid: 'تم الدفع',
-      partial: 'مدفوع جزئياً',
-      unpaid: 'لم يتم الدفع'
+      paid: 'Paid',
+      partial: 'Partially Paid',
+      unpaid: 'Unpaid'
     };
-    return labels[status || ''] || 'غير محدد';
+    return labels[status || ''] || 'Not Specified';
   }
 
   getPaymentStatusClass(status?: string | null): string {
@@ -102,7 +104,7 @@ export class RoomDetailComponent implements OnInit {
 
   formatCurrency(value?: number | string | null): string {
     const numericValue = Number(value ?? 0);
-    return `${numericValue.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ج.م`;
+    return `$${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   ngOnInit() {
@@ -123,6 +125,32 @@ export class RoomDetailComponent implements OnInit {
         this.isLoading = false;
         if (response.success) {
           this.room = response.data;
+          // Ensure images is always an array
+          if (this.room) {
+            const imagesValue = this.room.images;
+            if (!imagesValue) {
+              this.room.images = [];
+            } else if (typeof imagesValue === 'string') {
+              // Try to parse as JSON array
+              try {
+                const parsed = JSON.parse(imagesValue);
+                this.room.images = Array.isArray(parsed) ? parsed : [];
+              } catch (e) {
+                // If parsing fails, treat as single image URL string
+                const trimmed = (imagesValue as string).trim();
+                this.room.images = trimmed ? [trimmed] : [];
+              }
+            } else if (Array.isArray(imagesValue)) {
+              // Ensure all items in array are valid strings
+              this.room.images = imagesValue.filter((img): img is string => {
+                return typeof img === 'string' && img.trim().length > 0;
+              });
+            } else {
+              this.room.images = [];
+            }
+          }
+          // Reset image index when loading new room
+          this.currentImageIndex = 0;
           // Extract requests from room data if available
           if (response.data.requests) {
             this.roomRequests = response.data.requests;
@@ -131,7 +159,7 @@ export class RoomDetailComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'فشل تحميل بيانات الغرفة';
+        this.errorMessage = error.error?.message || 'Failed to load room data';
       }
     });
   }
@@ -156,10 +184,10 @@ export class RoomDetailComponent implements OnInit {
 
   acceptRequest(requestId: number) {
     this.modalService.showConfirm({
-      title: 'تأكيد القبول',
-      message: 'هل أنت متأكد من قبول هذا الطلب؟',
-      confirmText: 'قبول',
-      cancelText: 'إلغاء'
+      title: 'Confirm Approval',
+      message: 'Are you sure you want to approve this request?',
+      confirmText: 'Approve',
+      cancelText: 'Cancel'
     }).subscribe(confirmed => {
       if (confirmed) {
         this.roomRequestService.acceptRoomRequest(requestId).subscribe({
@@ -174,8 +202,8 @@ export class RoomDetailComponent implements OnInit {
           },
           error: (error) => {
             this.modalService.showAlert({
-              title: 'خطأ',
-              message: error.error?.message || 'فشل قبول الطلب'
+              title: 'Error',
+              message: error.error?.message || 'Failed to approve request'
             }).subscribe();
           }
         });
@@ -185,10 +213,10 @@ export class RoomDetailComponent implements OnInit {
 
   rejectRequest(requestId: number) {
     this.modalService.showConfirm({
-      title: 'تأكيد الرفض',
-      message: 'هل أنت متأكد من رفض هذا الطلب؟',
-      confirmText: 'رفض',
-      cancelText: 'إلغاء'
+      title: 'Confirm Rejection',
+      message: 'Are you sure you want to reject this request?',
+      confirmText: 'Reject',
+      cancelText: 'Cancel'
     }).subscribe(confirmed => {
       if (confirmed) {
         this.roomRequestService.rejectRoomRequest(requestId).subscribe({
@@ -201,8 +229,8 @@ export class RoomDetailComponent implements OnInit {
           },
           error: (error) => {
             this.modalService.showAlert({
-              title: 'خطأ',
-              message: error.error?.message || 'فشل رفض الطلب'
+              title: 'Error',
+              message: error.error?.message || 'Failed to reject request'
             }).subscribe();
           }
         });
@@ -212,9 +240,9 @@ export class RoomDetailComponent implements OnInit {
 
   getRequestStatusText(status: string): string {
     const texts: { [key: string]: string } = {
-      'pending': 'قيد الانتظار',
-      'accepted': 'مقبول',
-      'rejected': 'مرفوض'
+      'pending': 'Pending',
+      'accepted': 'Accepted',
+      'rejected': 'Rejected'
     };
     return texts[status] || status;
   }
@@ -250,10 +278,10 @@ export class RoomDetailComponent implements OnInit {
   deleteRoom() {
     if (this.room) {
       this.modalService.showConfirm({
-        title: 'تأكيد الحذف',
-        message: `هل أنت متأكد من حذف الغرفة "${this.room.roomNumber}"؟`,
-        confirmText: 'حذف',
-        cancelText: 'إلغاء'
+        title: 'Confirm Delete',
+        message: `Are you sure you want to delete room "${this.room.roomNumber}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
       }).subscribe(confirmed => {
         if (confirmed) {
           this.roomService.deleteRoom(this.room!.id).subscribe({
@@ -262,16 +290,16 @@ export class RoomDetailComponent implements OnInit {
                 this.router.navigate(['/dashboard/rooms']);
               } else {
                 this.modalService.showAlert({
-                  title: 'خطأ',
-                  message: response.message || 'فشل حذف الغرفة'
+                  title: 'Error',
+                  message: response.message || 'Failed to delete room'
                 }).subscribe();
               }
             },
             error: (error) => {
               console.error('Delete room error:', error);
-              const errorMessage = error.error?.message || error.message || 'فشل حذف الغرفة';
+              const errorMessage = error.error?.message || error.message || 'Failed to delete room';
               this.modalService.showAlert({
-                title: 'خطأ',
+                title: 'Error',
                 message: errorMessage
               }).subscribe();
             }
@@ -309,8 +337,8 @@ export class RoomDetailComponent implements OnInit {
   assignStudent() {
     if (!this.room || !this.selectedStudentId) {
       this.modalService.showAlert({
-        title: 'تنبيه',
-        message: 'الرجاء اختيار طالب'
+        title: 'Warning',
+        message: 'Please select a student'
       }).subscribe();
       return;
     }
@@ -336,8 +364,8 @@ export class RoomDetailComponent implements OnInit {
       },
       error: (error) => {
         this.modalService.showAlert({
-          title: 'خطأ',
-          message: error.error?.message || 'فشل إسناد الطالب للغرفة'
+          title: 'Error',
+          message: error.error?.message || 'Failed to assign student to room'
         }).subscribe();
       }
     });
@@ -345,10 +373,10 @@ export class RoomDetailComponent implements OnInit {
 
   checkOutStudent(studentId: number, studentName: string) {
     this.modalService.showConfirm({
-      title: 'تأكيد الإخراج',
-      message: `هل أنت متأكد من إخراج الطالب "${studentName}" من الغرفة؟`,
-      confirmText: 'إخراج',
-      cancelText: 'إلغاء'
+      title: 'Confirm Removal',
+      message: `Are you sure you want to remove student "${studentName}" from the room?`,
+      confirmText: 'Remove',
+      cancelText: 'Cancel'
     }).subscribe(confirmed => {
       if (confirmed) {
         this.roomService.checkOutStudent({ studentId }).subscribe({
@@ -360,8 +388,8 @@ export class RoomDetailComponent implements OnInit {
           },
           error: (error) => {
             this.modalService.showAlert({
-              title: 'خطأ',
-              message: error.error?.message || 'فشل إخراج الطالب'
+              title: 'Error',
+              message: error.error?.message || 'Failed to remove student'
             }).subscribe();
           }
         });
@@ -387,13 +415,13 @@ export class RoomDetailComponent implements OnInit {
   getStatusLabel(status: string): string {
     switch (status) {
       case 'available':
-        return 'متاحة';
+        return 'Available';
       case 'occupied':
-        return 'مشغولة';
+        return 'Occupied';
       case 'maintenance':
-        return 'صيانة';
+        return 'Maintenance';
       case 'reserved':
-        return 'محجوزة';
+        return 'Reserved';
       default:
         return status;
     }
@@ -406,8 +434,8 @@ export class RoomDetailComponent implements OnInit {
   openAddPaymentModal(roomStudent: RoomStudent) {
     if (!roomStudent.payment?.id) {
       this.modalService.showAlert({
-        title: 'تنبيه',
-        message: 'لا توجد بيانات دفع لهذا الطالب'
+        title: 'Warning',
+        message: 'No payment data for this student'
       }).subscribe();
       return;
     }
@@ -429,8 +457,8 @@ export class RoomDetailComponent implements OnInit {
   addPayment() {
     if (!this.selectedPaymentId || !this.additionalPaymentAmount || this.additionalPaymentAmount <= 0) {
       this.modalService.showAlert({
-        title: 'تنبيه',
-        message: 'الرجاء إدخال مبلغ صحيح'
+        title: 'Warning',
+        message: 'Please enter a valid amount'
       }).subscribe();
       return;
     }
@@ -448,15 +476,15 @@ export class RoomDetailComponent implements OnInit {
             this.loadRoomStudents(this.room.id);
           }
           this.modalService.showAlert({
-            title: 'نجح',
-            message: 'تم إضافة الدفعة بنجاح'
+            title: 'Success',
+            message: 'Payment added successfully'
           }).subscribe();
         }
       },
       error: (error) => {
         this.modalService.showAlert({
-          title: 'خطأ',
-          message: error.error?.message || 'فشل إضافة الدفعة'
+          title: 'Error',
+          message: error.error?.message || 'Failed to add payment'
         }).subscribe();
       }
     });
@@ -464,6 +492,47 @@ export class RoomDetailComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/dashboard/rooms']);
+  }
+
+  nextImage() {
+    if (this.room && Array.isArray(this.room.images) && this.room.images.length > 0) {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.room.images.length;
+    }
+  }
+
+  previousImage() {
+    if (this.room && Array.isArray(this.room.images) && this.room.images.length > 0) {
+      this.currentImageIndex = (this.currentImageIndex - 1 + this.room.images.length) % this.room.images.length;
+    }
+  }
+
+  goToImage(index: number) {
+    this.currentImageIndex = index;
+  }
+
+  getImageUrl(image: string): string {
+    if (!image) return '';
+    // If it's already a full URL, return it as is
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    // If it starts with /uploads, add the API URL
+    if (image.startsWith('/uploads/')) {
+      return `${environment.apiUrl}${image}`;
+    }
+    // Otherwise, assume it's a filename and construct the URL
+    return `${environment.apiUrl}/uploads/${image}`;
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+    }
+  }
+
+  isArray(value: any): boolean {
+    return Array.isArray(value);
   }
 }
 

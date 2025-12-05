@@ -20,18 +20,18 @@
   <div
     *ngIf="isOpen"
     class="absolute right-0 top-full mt-3 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 max-h-96 flex flex-col"
-    style="direction: rtl; z-index: 99999;"
+    style="direction: ltr; z-index: 99999;"
   >
     <!-- Header -->
     <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-      <h3 class="font-semibold text-gray-900">الإشعارات</h3>
+      <h3 class="font-semibold text-gray-900">Notifications</h3>
       <div class="flex items-center gap-2">
         <button
           *ngIf="unreadCount > 0"
           (click)="markAllAsRead()"
           class="text-xs text-blue-600 hover:text-blue-700"
         >
-          قراءة الكل
+          Mark All as Read
         </button>
       </div>
     </div>
@@ -39,11 +39,11 @@
     <!-- Notifications List -->
     <div class="flex-1 overflow-y-auto">
       <div *ngIf="isLoading" class="p-4 text-center text-gray-500">
-        جاري التحميل...
+        Loading...
       </div>
       
       <div *ngIf="!isLoading && notifications.length === 0" class="p-4 text-center text-gray-500">
-        لا توجد إشعارات
+        No notifications
       </div>
 
       <div *ngFor="let notification of notifications" 

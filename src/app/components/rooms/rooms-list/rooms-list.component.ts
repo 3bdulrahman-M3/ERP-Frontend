@@ -76,7 +76,7 @@ export class RoomsListComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'فشل تحميل قائمة الغرف';
+        this.errorMessage = error.error?.message || 'Failed to load rooms list';
       }
     });
   }
@@ -103,10 +103,10 @@ export class RoomsListComponent implements OnInit {
 
   deleteRoom(id: number, roomNumber: string) {
     this.modalService.showConfirm({
-      title: 'تأكيد الحذف',
-      message: `هل أنت متأكد من حذف الغرفة "${roomNumber}"؟`,
-      confirmText: 'حذف',
-      cancelText: 'إلغاء'
+      title: 'Confirm Delete',
+      message: `Are you sure you want to delete room "${roomNumber}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel'
     }).subscribe(confirmed => {
       if (confirmed) {
         this.roomService.deleteRoom(id).subscribe({
@@ -115,16 +115,16 @@ export class RoomsListComponent implements OnInit {
               this.loadRooms();
             } else {
               this.modalService.showAlert({
-                title: 'خطأ',
-                message: response.message || 'فشل حذف الغرفة'
+                title: 'Error',
+                message: response.message || 'Failed to delete room'
               }).subscribe();
             }
           },
           error: (error) => {
             console.error('Delete room error:', error);
-            const errorMessage = error.error?.message || error.message || 'فشل حذف الغرفة';
+            const errorMessage = error.error?.message || error.message || 'Failed to delete room';
             this.modalService.showAlert({
-              title: 'خطأ',
+              title: 'Error',
               message: errorMessage
             }).subscribe();
           }
@@ -168,13 +168,13 @@ export class RoomsListComponent implements OnInit {
   getStatusLabel(status: string): string {
     switch (status) {
       case 'available':
-        return 'متاحة';
+        return 'Available';
       case 'occupied':
-        return 'مشغولة';
+        return 'Occupied';
       case 'maintenance':
-        return 'صيانة';
+        return 'Maintenance';
       case 'reserved':
-        return 'محجوزة';
+        return 'Reserved';
       default:
         return status;
     }

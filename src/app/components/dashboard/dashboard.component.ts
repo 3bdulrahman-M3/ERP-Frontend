@@ -23,7 +23,7 @@ import { environment } from '../../../environments/environment';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
-  currentPageTitle = 'لوحة التحكم';
+  currentPageTitle = 'Dashboard';
   isSidebarOpen = true;
   currentRoute = '/dashboard';
 
@@ -67,19 +67,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
   } | null = null;
   
   mealNames: { [key: string]: string } = {
-    breakfast: 'الإفطار',
-    lunch: 'الغداء',
-    dinner: 'العشاء'
+    breakfast: 'Breakfast',
+    lunch: 'Lunch',
+    dinner: 'Dinner'
   };
 
 
   menuItems = [
-    { icon: '📊', label: 'لوحة التحكم', route: '/dashboard', active: true },
-    { icon: '🎓', label: 'الطلاب', route: '/dashboard/students', active: false },
-    { icon: '👥', label: 'المستخدمين', route: '/dashboard/users', active: false },
-    { icon: '📚', label: 'الدورات', route: '/dashboard/courses', active: false },
-    { icon: '📝', label: 'التقارير', route: '/dashboard/reports', active: false },
-    { icon: '⚙️', label: 'الإعدادات', route: '/dashboard/settings', active: false },
+    { icon: '📊', label: 'Dashboard', route: '/dashboard', active: true },
+    { icon: '🎓', label: 'Students', route: '/dashboard/students', active: false },
+    { icon: '👥', label: 'Users', route: '/dashboard/users', active: false },
+    { icon: '📚', label: 'Courses', route: '/dashboard/courses', active: false },
+    { icon: '📝', label: 'Reports', route: '/dashboard/reports', active: false },
+    { icon: '⚙️', label: 'Settings', route: '/dashboard/settings', active: false },
   ];
 
   constructor(
@@ -209,13 +209,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
       // Handle nested routes
       if (currentRoute.includes('/students')) {
         if (currentRoute.includes('/new')) {
-          this.currentPageTitle = 'إضافة طالب جديد';
+          this.currentPageTitle = 'Add New Student';
         } else if (currentRoute.includes('/edit')) {
-          this.currentPageTitle = 'تعديل طالب';
+          this.currentPageTitle = 'Edit Student';
         } else if (currentRoute.match(/\/students\/\d+$/)) {
-          this.currentPageTitle = 'تفاصيل الطالب';
+          this.currentPageTitle = 'Student Details';
         } else {
-          this.currentPageTitle = 'الطلاب';
+          this.currentPageTitle = 'Students';
         }
         this.menuItems.forEach(item => {
           item.active = item.route === '/dashboard/students';
@@ -512,7 +512,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   formatDateTime(dateTime: string | null): string {
     if (!dateTime) return '-';
     const date = new Date(dateTime);
-    return date.toLocaleString('ar-EG', {
+    return date.toLocaleString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

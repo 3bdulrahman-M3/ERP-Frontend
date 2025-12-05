@@ -47,7 +47,7 @@ export class StudentDetailComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'فشل تحميل بيانات الطالب';
+        this.errorMessage = error.error?.message || 'Failed to load student data';
       }
     });
   }
@@ -61,10 +61,10 @@ export class StudentDetailComponent implements OnInit {
   deleteStudent() {
     if (this.student) {
       this.modalService.showConfirm({
-        title: 'تأكيد الحذف',
-        message: `هل أنت متأكد من حذف الطالب "${this.student.name}"؟`,
-        confirmText: 'حذف',
-        cancelText: 'إلغاء'
+        title: 'Confirm Delete',
+        message: `Are you sure you want to delete student "${this.student.name}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
       }).subscribe(confirmed => {
         if (confirmed) {
           this.studentService.deleteStudent(this.student!.id).subscribe({
@@ -75,8 +75,8 @@ export class StudentDetailComponent implements OnInit {
             },
             error: (error) => {
               this.modalService.showAlert({
-                title: 'خطأ',
-                message: error.error?.message || 'فشل حذف الطالب'
+                title: 'Error',
+                message: error.error?.message || 'Failed to delete student'
               }).subscribe();
             }
           });

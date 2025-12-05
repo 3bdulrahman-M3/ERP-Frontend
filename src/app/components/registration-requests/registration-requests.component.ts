@@ -39,12 +39,12 @@ export class RegistrationRequestsComponent implements OnInit {
           this.requests = response.data;
           this.applyFilter();
         } else {
-          this.errorMessage = 'فشل تحميل طلبات التسجيل';
+          this.errorMessage = 'Failed to load registration requests';
         }
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'حدث خطأ أثناء تحميل طلبات التسجيل';
+        this.errorMessage = error.error?.message || 'An error occurred while loading registration requests';
         this.isLoading = false;
       }
     });
@@ -72,10 +72,10 @@ export class RegistrationRequestsComponent implements OnInit {
 
   approveRequest(id: number) {
     this.modalService.showConfirm({
-      title: 'تأكيد القبول',
-      message: 'هل أنت متأكد من قبول هذا الطلب؟ سيتم إنشاء حساب للطالب.',
-      confirmText: 'قبول',
-      cancelText: 'إلغاء'
+      title: 'Confirm Approval',
+      message: 'Are you sure you want to approve this request? A student account will be created.',
+      confirmText: 'Approve',
+      cancelText: 'Cancel'
     }).subscribe(confirmed => {
       if (!confirmed) {
         return;
@@ -88,12 +88,12 @@ export class RegistrationRequestsComponent implements OnInit {
             this.loadRequests();
             this.closeRequestDetails();
           } else {
-            this.errorMessage = response.message || 'فشل قبول الطلب';
+            this.errorMessage = response.message || 'Failed to approve request';
           }
           this.isLoading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message || 'حدث خطأ أثناء قبول الطلب';
+          this.errorMessage = error.error?.message || 'An error occurred while approving the request';
           this.isLoading = false;
         }
       });
@@ -102,10 +102,10 @@ export class RegistrationRequestsComponent implements OnInit {
 
   rejectRequest(id: number) {
     this.modalService.showConfirm({
-      title: 'تأكيد الرفض',
-      message: 'هل أنت متأكد من رفض هذا الطلب؟',
-      confirmText: 'رفض',
-      cancelText: 'إلغاء'
+      title: 'Confirm Rejection',
+      message: 'Are you sure you want to reject this request?',
+      confirmText: 'Reject',
+      cancelText: 'Cancel'
     }).subscribe(confirmed => {
       if (!confirmed) {
         return;
@@ -118,12 +118,12 @@ export class RegistrationRequestsComponent implements OnInit {
             this.loadRequests();
             this.closeRequestDetails();
           } else {
-            this.errorMessage = response.message || 'فشل رفض الطلب';
+            this.errorMessage = response.message || 'Failed to reject request';
           }
           this.isLoading = false;
         },
         error: (error) => {
-          this.errorMessage = error.error?.message || 'حدث خطأ أثناء رفض الطلب';
+          this.errorMessage = error.error?.message || 'An error occurred while rejecting the request';
           this.isLoading = false;
         }
       });
@@ -132,9 +132,9 @@ export class RegistrationRequestsComponent implements OnInit {
 
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
-      'pending': 'قيد الانتظار',
-      'approved': 'مقبول',
-      'rejected': 'مرفوض'
+      'pending': 'Pending',
+      'approved': 'Approved',
+      'rejected': 'Rejected'
     };
     return labels[status] || status;
   }
@@ -151,7 +151,7 @@ export class RegistrationRequestsComponent implements OnInit {
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('ar-EG', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

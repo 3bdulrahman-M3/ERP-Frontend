@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { PaymentService, PaymentRecord } from '../../../services/payment.service';
+import { PaymentMethod } from '../../../services/room.service';
+import { ModalService } from '../../../services/modal.service';
 
 @Component({
   selector: 'app-financial-report',
@@ -27,28 +29,37 @@ export class FinancialReportComponent implements OnInit {
   } = {};
   isLoading = false;
   errorMessage = '';
+  showAddPaymentModal = false;
+  selectedPayment: PaymentRecord | null = null;
+  additionalPaymentAmount: number | null = null;
+  additionalPaymentMethod: PaymentMethod = 'cash';
+  additionalPaymentNotes: string = '';
+  isAddingPayment = false;
 
   paymentMethodLabels: Record<string, string> = {
-    cash: 'نقدي',
-    visa: 'فيزا',
-    bank_transfer: 'تحويل بنكي',
-    other: 'أخرى'
+    cash: 'Cash',
+    visa: 'Visa',
+    bank_transfer: 'Bank Transfer',
+    other: 'Other'
   };
 
   statusLabels: Record<string, string> = {
-    paid: 'تم الدفع',
-    partial: 'مدفوع جزئياً',
-    unpaid: 'لم يتم الدفع'
+    paid: 'Paid',
+    partial: 'Partially Paid',
+    unpaid: 'Unpaid'
   };
 
   paymentMethodOptions = [
-    { value: 'cash', label: 'نقدي' },
-    { value: 'visa', label: 'فيزا' },
-    { value: 'bank_transfer', label: 'تحويل بنكي' },
-    { value: 'other', label: 'أخرى' }
+    { value: 'cash', label: 'Cash' },
+    { value: 'visa', label: 'Visa' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'other', label: 'Other' }
   ];
 
-  constructor(private paymentService: PaymentService) {}
+  constructor(
+    private paymentService: PaymentService,
+    private modalService: ModalService
+  ) {}
 
   ngOnInit() {
     this.loadReport();
@@ -67,7 +78,7 @@ export class FinancialReportComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'فشل تحميل التقرير المالي';
+        this.errorMessage = error.error?.message || 'Failed to load financial report';
       }
     });
   }
@@ -78,11 +89,11 @@ export class FinancialReportComponent implements OnInit {
   }
 
   getMethodLabel(method?: string): string {
-    return this.paymentMethodLabels[method || ''] || 'غير محدد';
+    return this.paymentMethodLabels[method || ''] || 'Not Specified';
   }
 
   getStatusLabel(status?: string): string {
-    return this.statusLabels[status || ''] || 'غير محدد';
+    return this.statusLabels[status || ''] || 'Not Specified';
   }
 
   getStatusClass(status?: string): string {
@@ -100,7 +111,69 @@ export class FinancialReportComponent implements OnInit {
 
   formatCurrency(value?: number | string | null): string {
     const numericValue = Number(value ?? 0);
-    return `${numericValue.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ج.م`;
+    return `$${numericValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  openAddPaymentModal(payment: PaymentRecord) {
+    this.selectedPayment = payment;
+    this.additionalPaymentAmount = null;
+    this.additionalPaymentMethod = 'cash';
+    this.additionalPaymentNotes = '';
+    this.showAddPaymentModal = true;
+  }
+
+  closeAddPaymentModal() {
+    this.showAddPaymentModal = false;
+    this.selectedPayment = null;
+    this.additionalPaymentAmount = null;
+    this.additionalPaymentMethod = 'cash';
+    this.additionalPaymentNotes = '';
+    this.isAddingPayment = false;
+  }
+
+  addPayment() {
+    if (!this.selectedPayment?.id || !this.additionalPaymentAmount || this.additionalPaymentAmount <= 0) {
+      this.modalService.showAlert({
+        title: 'Warning',
+        message: 'Please enter a valid amount'
+      }).subscribe();
+      return;
+    }
+
+    if (this.additionalPaymentAmount > (this.selectedPayment.remainingAmount || 0)) {
+      this.modalService.showAlert({
+        title: 'Warning',
+        message: 'Payment amount cannot exceed remaining amount'
+      }).subscribe();
+      return;
+    }
+
+    this.isAddingPayment = true;
+    this.paymentService.addPayment(
+      this.selectedPayment.id,
+      this.additionalPaymentAmount,
+      this.additionalPaymentMethod,
+      this.additionalPaymentNotes || undefined
+    ).subscribe({
+      next: (response) => {
+        this.isAddingPayment = false;
+        if (response.success) {
+          this.closeAddPaymentModal();
+          this.loadReport();
+          this.modalService.showAlert({
+            title: 'Success',
+            message: 'Payment added successfully'
+          }).subscribe();
+        }
+      },
+      error: (error) => {
+        this.isAddingPayment = false;
+        this.modalService.showAlert({
+          title: 'Error',
+          message: error.error?.message || 'Failed to add payment'
+        }).subscribe();
+      }
+    });
   }
 }
 
