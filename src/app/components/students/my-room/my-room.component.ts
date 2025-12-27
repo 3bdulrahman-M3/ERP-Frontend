@@ -6,6 +6,7 @@ import { RoomService, PaymentInfo } from '../../../services/room.service';
 import { AuthService } from '../../../services/auth.service';
 import { StudentService } from '../../../services/student.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { environment } from '../../../../environments/environment';
 
 interface Roommate {
   id: number;
@@ -25,6 +26,7 @@ interface RoomData {
     id: number;
     roomNumber: string;
     floor?: number;
+    images?: string[] | string;
     buildingInfo?: {
       id: number;
       name: string;
@@ -159,6 +161,47 @@ export class MyRoomComponent implements OnInit {
       if (directionsUrl) {
         window.open(directionsUrl, '_blank');
       }
+    }
+  }
+
+  getRoomImage(room: RoomData['room']): string | null {
+    if (!room.images) return null;
+    
+    // Handle different image formats
+    let images: string[] = [];
+    if (typeof room.images === 'string') {
+      try {
+        const parsed = JSON.parse(room.images);
+        images = Array.isArray(parsed) ? parsed : [room.images];
+      } catch (e) {
+        images = [room.images];
+      }
+    } else if (Array.isArray(room.images)) {
+      images = room.images;
+    }
+    
+    // Return first valid image
+    return images.length > 0 && images[0] ? images[0] : null;
+  }
+
+  getImageUrl(imagePath: string): string {
+    if (!imagePath) return '';
+    // If it's already a full URL, return it as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    // If it starts with /uploads, add the API URL
+    if (imagePath.startsWith('/uploads/')) {
+      return `${environment.apiUrl}${imagePath}`;
+    }
+    // Otherwise, assume it's a filename and construct the URL
+    return `${environment.apiUrl}/uploads/${imagePath}`;
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
     }
   }
 }

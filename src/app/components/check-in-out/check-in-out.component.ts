@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LayoutComponent } from '../shared/layout/layout.component';
+import { LanguageService } from '../../services/language.service';
 import { CheckInOutService, CheckInOutRecord } from '../../services/check-in-out.service';
 
 declare var Html5Qrcode: any;
@@ -35,7 +36,10 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   successMessage = '';
   errorMessage = '';
 
-  constructor(private checkInOutService: CheckInOutService) {}
+  constructor(
+    private checkInOutService: CheckInOutService,
+    public languageService: LanguageService
+  ) {}
 
   ngOnInit() {
     this.loadTodayCheckIns();
@@ -117,7 +121,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
         }
       ).catch((err: any) => {
         console.error('Error starting QR scanner:', err);
-        this.errorMessage = 'Failed to start camera. Please allow camera access.';
+        this.errorMessage = this.languageService.translate('checkInOut.cameraError');
         this.isScanning = false;
         this.showScanner = false;
       });
@@ -161,7 +165,7 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'Failed to check in/out';
+        this.errorMessage = error.error?.message || this.languageService.translate('checkInOut.checkError');
         this.isLoading = false;
         
         // Clear error after 5 seconds
@@ -215,7 +219,9 @@ export class CheckInOutComponent implements OnInit, OnDestroy {
   }
 
   getStatusText(status: string): string {
-    return status === 'checked_in' ? 'Checked In' : 'Checked Out';
+    return status === 'checked_in' 
+      ? this.languageService.translate('checkInOut.checkedIn') 
+      : this.languageService.translate('checkInOut.checkedOut');
   }
 }
 

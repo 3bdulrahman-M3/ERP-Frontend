@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ConfirmModalComponent } from './components/shared/modals/confirm-modal/confirm-modal.component';
 import { AlertModalComponent } from './components/shared/modals/alert-modal/alert-modal.component';
+import { LanguageService } from './services/language.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,14 @@ import { AlertModalComponent } from './components/shared/modals/alert-modal/aler
     <app-alert-modal></app-alert-modal>
   `
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'ERP System';
+
+  constructor(private languageService: LanguageService) {}
+
+  ngOnInit() {
+    // Initialize language service to apply stored language
+    this.languageService.getCurrentLanguage();
+  }
 }
 

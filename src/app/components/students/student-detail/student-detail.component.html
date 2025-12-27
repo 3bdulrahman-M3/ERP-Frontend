@@ -1,4 +1,4 @@
-<app-layout pageTitle="تفاصيل الطالب">
+<app-layout [pageTitle]="languageService.translate('students.details')">
 <div class="p-6">
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
@@ -7,19 +7,19 @@
         (click)="goBack()"
         class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition duration-200"
       >
-        رجوع
+        {{ languageService.translate('common.back') }}
       </button>
       <button
         (click)="editStudent()"
         class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition duration-200"
       >
-        تعديل
+        {{ languageService.translate('common.edit') }}
       </button>
       <button
         (click)="deleteStudent()"
         class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition duration-200"
       >
-        حذف
+        {{ languageService.translate('common.delete') }}
       </button>
     </div>
   </div>
@@ -54,49 +54,49 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-2">{{ student.name }}</h2>
         <p class="text-gray-600 mb-1">{{ student.email }}</p>
         <p class="text-gray-600" *ngIf="student.college">{{ student.college.name }}</p>
-        <p class="text-gray-600" *ngIf="student.year">الفرقة {{ student.year }}</p>
+        <p class="text-gray-600" *ngIf="student.year">{{ languageService.translate('students.year') }} {{ student.year }}</p>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Basic Info -->
       <div class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">المعلومات الأساسية</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ languageService.translate('students.basicInfo') }}</h3>
         <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">الكلية</label>
-          <p class="text-lg text-gray-900">{{ student.college?.name || 'غير محدد' }}</p>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.college') }}</label>
+          <p class="text-lg text-gray-900">{{ student.college?.name || languageService.translate('common.notSpecified') }}</p>
         </div>
         <div *ngIf="student.year">
-          <label class="block text-sm font-medium text-gray-500 mb-1">الفرقة</label>
-          <p class="text-lg text-gray-900">الفرقة {{ student.year }}</p>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.year') }}</label>
+          <p class="text-lg text-gray-900">{{ languageService.translate('students.year') }} {{ student.year }}</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">العمر</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.age') }}</label>
           <p class="text-lg text-gray-900">{{ student.age }}</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">رقم الهاتف</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.phone') }}</label>
           <p class="text-lg text-gray-900">{{ student.phoneNumber }}</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الإنشاء</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.createdAt') }}</label>
           <p class="text-lg text-gray-900">{{ formatDateTime(student.createdAt) }}</p>
         </div>
       </div>
 
       <!-- Additional Info -->
       <div class="space-y-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">معلومات إضافية</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ languageService.translate('students.additionalInfo') }}</h3>
         <div *ngIf="student.governorate">
-          <label class="block text-sm font-medium text-gray-500 mb-1">المحافظة</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.governorate') }}</label>
           <p class="text-lg text-gray-900">{{ student.governorate }}</p>
         </div>
         <div *ngIf="student.address">
-          <label class="block text-sm font-medium text-gray-500 mb-1">العنوان</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.address') }}</label>
           <p class="text-lg text-gray-900">{{ student.address }}</p>
         </div>
         <div *ngIf="student.guardianPhone">
-          <label class="block text-sm font-medium text-gray-500 mb-1">رقم ولي الأمر</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.guardianPhone') }}</label>
           <p class="text-lg text-gray-900">{{ student.guardianPhone }}</p>
         </div>
       </div>
@@ -104,11 +104,11 @@
 
     <!-- ID Card Image -->
     <div *ngIf="student.idCardImage" class="mt-8 pt-8 border-t border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">صورة البطاقة الشخصية</h3>
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ languageService.translate('students.idCard') }}</h3>
       <div class="flex justify-center">
         <img 
           [src]="student.idCardImage" 
-          alt="صورة البطاقة الشخصية"
+          [alt]="languageService.translate('students.idCard')"
           class="max-w-md w-full h-auto border border-gray-300 rounded-lg shadow-md"
           onerror="this.style.display='none'"
         />
@@ -118,7 +118,7 @@
     <!-- QR Code -->
     <div class="mt-8 pt-8 border-t border-gray-200">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-800">QR Code</h3>
+        <h3 class="text-lg font-semibold text-gray-800">{{ languageService.translate('students.qrCode') }}</h3>
         <button
           (click)="downloadQRCode()"
           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition duration-200 flex items-center space-x-2 space-x"
@@ -126,33 +126,33 @@
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          <span>تحميل QR Code</span>
+          <span>{{ languageService.translate('students.downloadQR') }}</span>
         </button>
       </div>
       <div class="flex justify-center">
-        <img [src]="student.qrCode" alt="QR Code" class="w-64 h-64 border border-gray-300 rounded-lg p-4 bg-white">
+        <img [src]="student.qrCode" [alt]="languageService.translate('students.qrCode')" class="w-64 h-64 border border-gray-300 rounded-lg p-4 bg-white">
       </div>
     </div>
 
     <!-- Room Info -->
     <div *ngIf="student.roomAssignments && student.roomAssignments.length > 0" class="mt-8 pt-8 border-t border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">معلومات الغرفة</h3>
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ languageService.translate('students.roomInfo') }}</h3>
       <div *ngFor="let assignment of student.roomAssignments" class="bg-blue-50 rounded-lg p-4 mb-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">رقم الغرفة</label>
-            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.roomNumber || 'غير محدد' }}</p>
+            <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('rooms.roomNumber') }}</label>
+            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.roomNumber || languageService.translate('common.notSpecified') }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">المبنى</label>
-            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.buildingInfo?.name || assignment.room?.building || 'غير محدد' }}</p>
+            <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('rooms.building') }}</label>
+            <p class="text-lg font-semibold text-gray-900">{{ assignment.room?.buildingInfo?.name || assignment.room?.building || languageService.translate('common.notSpecified') }}</p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الدخول</label>
+            <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.checkInDate') }}</label>
             <p class="text-lg text-gray-900">{{ assignment.checkInDate | date: 'yyyy-MM-dd' }}</p>
           </div>
           <div *ngIf="assignment.checkOutDate">
-            <label class="block text-sm font-medium text-gray-500 mb-1">تاريخ الخروج</label>
+            <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.checkOutDate') }}</label>
             <p class="text-lg text-gray-900">{{ assignment.checkOutDate | date: 'yyyy-MM-dd' }}</p>
           </div>
         </div>
@@ -161,20 +161,20 @@
 
     <!-- User Info -->
     <div *ngIf="student.user" class="mt-8 pt-8 border-t border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">معلومات الحساب</h3>
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ languageService.translate('students.accountInfo') }}</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">الدور</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('students.role') }}</label>
           <span [class]="student.user.role === 'admin' ? 'bg-blue-600' : 'bg-green-600'" 
                 class="px-3 py-1 rounded-full text-white text-sm">
-            {{ student.user.role === 'admin' ? 'مدير' : 'طالب' }}
+            {{ student.user.role === 'admin' ? languageService.translate('common.admin') : languageService.translate('common.student') }}
           </span>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">الحالة</label>
+          <label class="block text-sm font-medium text-gray-500 mb-1">{{ languageService.translate('common.status') }}</label>
           <span [class]="student.user.isActive ? 'bg-green-600' : 'bg-red-600'" 
                 class="px-3 py-1 rounded-full text-white text-sm">
-            {{ student.user.isActive ? 'نشط' : 'غير نشط' }}
+            {{ student.user.isActive ? languageService.translate('common.active') : languageService.translate('common.inactive') }}
           </span>
         </div>
       </div>

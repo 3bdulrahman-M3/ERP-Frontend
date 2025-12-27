@@ -6,6 +6,8 @@ import { RoomService, Room } from '../../../services/room.service';
 import { BuildingService, Building } from '../../../services/building.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { ModalService } from '../../../services/modal.service';
+import { LanguageService } from '../../../services/language.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-rooms-list',
@@ -33,7 +35,8 @@ export class RoomsListComponent implements OnInit {
     private roomService: RoomService,
     private buildingService: BuildingService,
     private router: Router,
-    private modalService: ModalService
+    private modalService: ModalService,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
@@ -115,16 +118,16 @@ export class RoomsListComponent implements OnInit {
               this.loadRooms();
             } else {
               this.modalService.showAlert({
-                title: 'Error',
-                message: response.message || 'Failed to delete room'
+                title: this.languageService.translate('common.error'),
+                message: response.message || this.languageService.translate('rooms.deleteError')
               }).subscribe();
             }
           },
           error: (error) => {
             console.error('Delete room error:', error);
-            const errorMessage = error.error?.message || error.message || 'Failed to delete room';
+            const errorMessage = error.error?.message || error.message || this.languageService.translate('rooms.deleteError');
             this.modalService.showAlert({
-              title: 'Error',
+              title: this.languageService.translate('common.error'),
               message: errorMessage
             }).subscribe();
           }
@@ -168,13 +171,13 @@ export class RoomsListComponent implements OnInit {
   getStatusLabel(status: string): string {
     switch (status) {
       case 'available':
-        return 'Available';
+        return this.languageService.translate('rooms.available');
       case 'occupied':
-        return 'Occupied';
+        return this.languageService.translate('rooms.occupied');
       case 'maintenance':
-        return 'Maintenance';
+        return this.languageService.translate('rooms.maintenance');
       case 'reserved':
-        return 'Reserved';
+        return this.languageService.translate('rooms.reserved');
       default:
         return status;
     }
@@ -199,6 +202,47 @@ export class RoomsListComponent implements OnInit {
 
   get Math() {
     return Math;
+  }
+
+  getRoomImage(room: Room): string | null {
+    if (!room.images) return null;
+    
+    // Handle different image formats
+    let images: string[] = [];
+    if (typeof room.images === 'string') {
+      try {
+        const parsed = JSON.parse(room.images);
+        images = Array.isArray(parsed) ? parsed : [room.images];
+      } catch (e) {
+        images = [room.images];
+      }
+    } else if (Array.isArray(room.images)) {
+      images = room.images;
+    }
+    
+    // Return first valid image
+    return images.length > 0 && images[0] ? images[0] : null;
+  }
+
+  getImageUrl(imagePath: string): string {
+    if (!imagePath) return '';
+    // If it's already a full URL, return it as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+    // If it starts with /uploads, add the API URL
+    if (imagePath.startsWith('/uploads/')) {
+      return `${environment.apiUrl}${imagePath}`;
+    }
+    // Otherwise, assume it's a filename and construct the URL
+    return `${environment.apiUrl}/uploads/${imagePath}`;
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+    }
   }
 }
 

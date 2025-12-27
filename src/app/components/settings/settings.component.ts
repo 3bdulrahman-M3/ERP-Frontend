@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService, User } from '../../services/auth.service';
 import { UploadService } from '../../services/upload.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-settings',
@@ -30,7 +31,8 @@ export class SettingsComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private uploadService: UploadService
+    private uploadService: UploadService,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
@@ -86,7 +88,7 @@ export class SettingsComponent implements OnInit {
     this.authService.updateProfile(updateData).subscribe({
       next: (response: any) => {
         if (response.success) {
-          this.successMessage = 'Profile updated successfully';
+          this.successMessage = this.languageService.translate('settings.updateSuccess');
           this.currentUser = response.data;
           // Clear password fields
           this.formData.currentPassword = '';
@@ -96,7 +98,7 @@ export class SettingsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error: any) => {
-        this.errorMessage = error.error?.message || 'An error occurred while updating profile';
+        this.errorMessage = error.error?.message || this.languageService.translate('settings.updateError');
         this.isLoading = false;
       }
     });
@@ -106,13 +108,13 @@ export class SettingsComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        this.errorMessage = 'Image size must be less than 5MB';
+        this.errorMessage = this.languageService.translate('settings.imageSizeError');
         return;
       }
 
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
-        this.errorMessage = 'Only image files are allowed (JPEG, JPG, PNG, GIF, WEBP)';
+        this.errorMessage = this.languageService.translate('settings.imageTypeError');
         return;
       }
 
@@ -146,10 +148,11 @@ export class SettingsComponent implements OnInit {
       this.uploadService.deleteImage(filename).subscribe({
         next: () => {
           this.formData.profileImage = '';
-          this.successMessage = 'Profile image deleted successfully';
+          this.successMessage = this.languageService.translate('settings.imageDeleteSuccess');
         },
         error: (error: any) => {
           console.error('Error deleting image:', error);
+          this.errorMessage = this.languageService.translate('settings.imageDeleteError');
         }
       });
     }

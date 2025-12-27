@@ -1,13 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ReviewService, Review } from '../../services/review.service';
-import { RoomService } from '../../services/room.service';
-import { BuildingService } from '../../services/building.service';
-import { MealService } from '../../services/meal.service';
+import { RoomService, Room } from '../../services/room.service';
+import { LanguageService } from '../../services/language.service';
 import { environment } from '../../../environments/environment';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-landing',
@@ -34,29 +34,79 @@ export class LandingComponent implements OnInit, OnDestroy {
   reviews: Review[] = [];
   isLoadingReviews = false;
 
-  promotionalImages: Array<{ url: string; title: string; description?: string }> = [];
-  currentSlideIndex = 0;
-  slideInterval: any;
+  randomRooms: Room[] = [];
+  isLoadingRooms = false;
+  
+  private routerSubscription: any;
+
+  // Social Media Links
+  socialLinks = {
+    facebook: 'https://www.facebook.com',
+    whatsapp: 'https://wa.me/',
+    instagram: 'https://www.instagram.com',
+    linkedin: 'https://www.linkedin.com'
+  };
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private reviewService: ReviewService,
     private roomService: RoomService,
-    private buildingService: BuildingService,
-    private mealService: MealService
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
     this.checkAuthentication();
     this.loadReviews();
-    this.loadPromotionalImages();
-    this.startSlideShow();
+    this.loadRandomRooms();
+    
+    // Reload rooms when navigating back to this page
+    this.routerSubscription = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        if (event.url === '/' || event.url === '/home') {
+          this.loadRandomRooms();
+        }
+      });
   }
 
   checkAuthentication() {
     this.currentUser = this.authService.getCurrentUser();
     this.isAuthenticated = !!this.currentUser;
+  }
+
+  loadRandomRooms() {
+    this.isLoadingRooms = true;
+    this.roomService.getAllRooms(1, 100).subscribe({
+      next: (response) => {
+        this.isLoadingRooms = false;
+        if (response.success && response.data) {
+          const rooms = Array.isArray(response.data.rooms) ? response.data.rooms : [];
+          // Filter available rooms only
+          const availableRooms = rooms.filter((room: Room) => 
+            room.status === 'available' && room.availableBeds > 0
+          );
+          
+          // Shuffle and take 3 random rooms
+          const shuffled = availableRooms.sort(() => Math.random() - 0.5);
+          this.randomRooms = shuffled.slice(0, 3);
+        }
+      },
+      error: (error) => {
+        this.isLoadingRooms = false;
+        console.error('Error loading rooms:', error);
+      }
+    });
+  }
+
+  viewAllRooms() {
+    if (this.isAuthenticated) {
+      // Navigate to available rooms page for students
+      this.router.navigate(['/dashboard/available-rooms']);
+    } else {
+      // Navigate to login page
+      this.router.navigate(['/login']);
+    }
   }
 
   goToDashboard() {
@@ -78,8 +128,8 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.slideInterval) {
-      clearInterval(this.slideInterval);
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
     }
   }
 
@@ -112,131 +162,6 @@ export class LandingComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadPromotionalImages() {
-    const images: Array<{ url: string; title: string; description?: string }> = [];
-
-    // Load rooms with images (load more to get all images)
-    this.roomService.getAllRooms(1, 100).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          const rooms = Array.isArray(response.data) ? response.data : response.data.rooms || [];
-          rooms.forEach((room: any) => {
-            // Handle images - could be string, array, or JSON string
-            let roomImages: string[] = [];
-            if (room.images) {
-              if (typeof room.images === 'string') {
-                try {
-                  const parsed = JSON.parse(room.images);
-                  roomImages = Array.isArray(parsed) ? parsed : [room.images];
-                } catch (e) {
-                  roomImages = [room.images];
-                }
-              } else if (Array.isArray(room.images)) {
-                roomImages = room.images;
-              }
-            }
-            
-            if (roomImages.length > 0) {
-              roomImages.forEach((img: string) => {
-                if (img && img.trim()) {
-                  images.push({
-                    url: img,
-                    title: `Room ${room.roomNumber}`,
-                    description: room.buildingInfo?.name || ''
-                  });
-                }
-              });
-            }
-          });
-        }
-
-        // Load buildings with images
-        this.buildingService.getBuildings().subscribe({
-          next: (buildingResponse) => {
-            if (buildingResponse.success && buildingResponse.data) {
-              const buildings = Array.isArray(buildingResponse.data) ? buildingResponse.data : [];
-              buildings.forEach((building: any) => {
-                if (building.image) {
-                  images.push({
-                    url: building.image,
-                    title: building.name,
-                    description: building.address || ''
-                  });
-                }
-              });
-            }
-
-            // Load meals with images
-            this.mealService.getMeals().subscribe({
-              next: (mealResponse) => {
-                if (mealResponse.success && mealResponse.data) {
-                  const meals = Array.isArray(mealResponse.data) ? mealResponse.data : [];
-                  meals.forEach((meal: any) => {
-                    if (meal.image) {
-                      const mealNames: { [key: string]: string } = {
-                        breakfast: 'Breakfast',
-                        lunch: 'Lunch',
-                        dinner: 'Dinner'
-                      };
-                      images.push({
-                        url: meal.image,
-                        title: mealNames[meal.name] || meal.name,
-                        description: meal.category || ''
-                      });
-                    }
-                  });
-                }
-
-                // Shuffle images for variety and use all available images
-                this.promotionalImages = images.sort(() => Math.random() - 0.5);
-              },
-              error: (error) => {
-                console.error('Error loading meals:', error);
-                this.promotionalImages = images;
-              }
-            });
-          },
-          error: (error) => {
-            console.error('Error loading buildings:', error);
-            this.promotionalImages = images;
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Error loading rooms:', error);
-        this.promotionalImages = images;
-      }
-    });
-  }
-
-  startSlideShow() {
-    this.slideInterval = setInterval(() => {
-      if (this.promotionalImages.length > 0) {
-        this.nextSlide();
-      }
-    }, 5000); // Change slide every 5 seconds
-  }
-
-  nextSlide() {
-    if (this.promotionalImages.length > 0) {
-      this.currentSlideIndex = (this.currentSlideIndex + 1) % this.promotionalImages.length;
-    }
-  }
-
-  previousSlide() {
-    if (this.promotionalImages.length > 0) {
-      this.currentSlideIndex = (this.currentSlideIndex - 1 + this.promotionalImages.length) % this.promotionalImages.length;
-    }
-  }
-
-  goToSlide(index: number) {
-    this.currentSlideIndex = index;
-    // Reset the interval when manually changing slides
-    if (this.slideInterval) {
-      clearInterval(this.slideInterval);
-    }
-    this.startSlideShow();
-  }
 
   getImageUrl(imagePath: string): string {
     if (!imagePath) return '';
@@ -250,6 +175,18 @@ export class LandingComponent implements OnInit, OnDestroy {
     }
     // Otherwise, assume it's a filename and construct the URL
     return `${environment.apiUrl}/uploads/${imagePath}`;
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+      // Show placeholder div
+      const placeholder = target.nextElementSibling as HTMLElement;
+      if (placeholder && placeholder.classList.contains('image-placeholder')) {
+        placeholder.style.display = 'flex';
+      }
+    }
   }
 
   openRegisterModal() {
@@ -270,6 +207,10 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   goToLogin() {
     this.router.navigate(['/login']);
+  }
+
+  toggleLanguage(): void {
+    this.languageService.toggleLanguage();
   }
 
   submitRegister() {

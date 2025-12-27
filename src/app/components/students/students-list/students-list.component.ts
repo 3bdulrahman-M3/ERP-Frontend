@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { StudentService, Student } from '../../../services/student.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { ModalService } from '../../../services/modal.service';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-students-list',
@@ -25,7 +26,8 @@ export class StudentsListComponent implements OnInit {
   constructor(
     private studentService: StudentService,
     private router: Router,
-    private modalService: ModalService
+    private modalService: ModalService,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {

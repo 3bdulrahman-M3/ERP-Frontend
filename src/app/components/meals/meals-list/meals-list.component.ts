@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { MealService, Meal } from '../../../services/meal.service';
 import { UploadService } from '../../../services/upload.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { LanguageService } from '../../../services/language.service';
 import { formatTime12Hour } from '../../../utils/time.util';
 
 @Component({
@@ -38,19 +39,28 @@ export class MealsListComponent implements OnInit {
   imageFile: File | null = null;
   isUploadingImage = false;
 
-  mealNames = {
-    breakfast: 'Breakfast',
-    lunch: 'Lunch',
-    dinner: 'Dinner'
-  };
+  mealNames: { [key: string]: string } = {};
 
   constructor(
     private mealService: MealService,
-    private uploadService: UploadService
+    private uploadService: UploadService,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
+    this.updateMealNames();
+    this.languageService.currentLanguage$.subscribe(() => {
+      this.updateMealNames();
+    });
     this.loadMeals();
+  }
+
+  updateMealNames() {
+    this.mealNames = {
+      breakfast: this.languageService.translate('meals.breakfast'),
+      lunch: this.languageService.translate('meals.lunch'),
+      dinner: this.languageService.translate('meals.dinner')
+    };
   }
 
   loadMeals() {
@@ -220,7 +230,7 @@ export class MealsListComponent implements OnInit {
   }
 
   getMealName(name: string): string {
-    return this.mealNames[name as keyof typeof this.mealNames] || name;
+    return this.mealNames[name] || this.languageService.translate(`meals.${name}`) || name;
   }
 
   formatTime(time: string): string {

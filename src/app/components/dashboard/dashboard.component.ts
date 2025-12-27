@@ -9,6 +9,7 @@ import { MealService, KitchenStatus } from '../../services/meal.service';
 import { CheckInOutService } from '../../services/check-in-out.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
 import { ChatWidgetComponent } from '../chat/chat-widget.component';
+import { LanguageService } from '../../services/language.service';
 import { formatTime12Hour, getCurrentTime12HourShort } from '../../utils/time.util';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -23,7 +24,7 @@ import { environment } from '../../../environments/environment';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
-  currentPageTitle = 'Dashboard';
+  currentPageTitle = '';
   isSidebarOpen = true;
   currentRoute = '/dashboard';
 
@@ -66,11 +67,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     phoneNumber?: string;
   } | null = null;
   
-  mealNames: { [key: string]: string } = {
-    breakfast: 'Breakfast',
-    lunch: 'Lunch',
-    dinner: 'Dinner'
-  };
+  mealNames: { [key: string]: string } = {};
 
 
   menuItems = [
@@ -92,13 +89,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     public router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUser();
     this.currentRoute = this.router.url;
+    this.updateMealNames();
     this.updatePageTitle();
+    
+    // Subscribe to language changes
+    this.languageService.currentLanguage$.subscribe(() => {
+      this.updateMealNames();
+      this.updatePageTitle();
+      this.cdr.markForCheck();
+    });
     
     // Check if student has profile, if not redirect to complete profile
     if (this.currentUser?.role === 'student') {
@@ -117,6 +123,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.currentRoute = this.router.url;
       this.updatePageTitle();
     });
+  }
+
+  updateMealNames() {
+    this.mealNames = {
+      breakfast: this.languageService.translate('meals.breakfast'),
+      lunch: this.languageService.translate('meals.lunch'),
+      dinner: this.languageService.translate('meals.dinner')
+    };
   }
 
   checkStudentProfile() {
@@ -192,35 +206,50 @@ export class DashboardComponent implements OnInit, OnDestroy {
   updatePageTitle() {
     const currentRoute = this.router.url;
     
-    // Check for exact match first
-    let menuItem = this.menuItems.find(item => item.route === currentRoute);
-    
-    // If no exact match, check if route starts with menu item route
-    if (!menuItem) {
-      menuItem = this.menuItems.find(item => currentRoute.startsWith(item.route));
+    if (currentRoute === '/dashboard') {
+      this.currentPageTitle = this.languageService.translate('dashboard.title');
+      return;
     }
     
-    if (menuItem) {
-      this.currentPageTitle = menuItem.label;
-      this.menuItems.forEach(item => {
-        item.active = currentRoute.startsWith(item.route);
-      });
-    } else {
-      // Handle nested routes
-      if (currentRoute.includes('/students')) {
-        if (currentRoute.includes('/new')) {
-          this.currentPageTitle = 'Add New Student';
-        } else if (currentRoute.includes('/edit')) {
-          this.currentPageTitle = 'Edit Student';
-        } else if (currentRoute.match(/\/students\/\d+$/)) {
-          this.currentPageTitle = 'Student Details';
-        } else {
-          this.currentPageTitle = 'Students';
-        }
-        this.menuItems.forEach(item => {
-          item.active = item.route === '/dashboard/students';
-        });
+    // Handle nested routes
+    if (currentRoute.includes('/students')) {
+      if (currentRoute.includes('/new')) {
+        this.currentPageTitle = this.languageService.translate('students.add');
+      } else if (currentRoute.includes('/edit')) {
+        this.currentPageTitle = this.languageService.translate('students.edit');
+      } else if (currentRoute.match(/\/students\/\d+$/)) {
+        this.currentPageTitle = this.languageService.translate('students.details');
+      } else {
+        this.currentPageTitle = this.languageService.translate('students.title');
       }
+    } else if (currentRoute.includes('/rooms')) {
+      this.currentPageTitle = this.languageService.translate('rooms.title');
+    } else if (currentRoute.includes('/buildings')) {
+      this.currentPageTitle = this.languageService.translate('buildings.title');
+    } else if (currentRoute.includes('/colleges')) {
+      this.currentPageTitle = this.languageService.translate('colleges.title');
+    } else if (currentRoute.includes('/meals')) {
+      this.currentPageTitle = this.languageService.translate('meals.title');
+    } else if (currentRoute.includes('/services')) {
+      this.currentPageTitle = this.languageService.translate('services.title');
+    } else if (currentRoute.includes('/kitchen')) {
+      this.currentPageTitle = this.languageService.translate('kitchen.title');
+    } else if (currentRoute.includes('/check-in-out')) {
+      this.currentPageTitle = this.languageService.translate('checkInOut.title');
+    } else if (currentRoute.includes('/reviews')) {
+      this.currentPageTitle = this.languageService.translate('reviews.title');
+    } else if (currentRoute.includes('/chat')) {
+      this.currentPageTitle = this.languageService.translate('chat.title');
+    } else if (currentRoute.includes('/reports')) {
+      this.currentPageTitle = this.languageService.translate('reports.title');
+    } else if (currentRoute.includes('/settings')) {
+      this.currentPageTitle = this.languageService.translate('settings.title');
+    } else if (currentRoute.includes('/preferences')) {
+      this.currentPageTitle = this.languageService.translate('preferences.title');
+    } else if (currentRoute.includes('/my-room')) {
+      this.currentPageTitle = this.languageService.translate('menu.myRoom');
+    } else {
+      this.currentPageTitle = this.languageService.translate('dashboard.title');
     }
   }
 
@@ -231,10 +260,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   logout() {
     this.authService.logout().subscribe({
       next: () => {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
       },
       error: () => {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
       }
     });
   }

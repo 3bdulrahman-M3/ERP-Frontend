@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-login',
@@ -19,12 +20,13 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public languageService: LanguageService
   ) {}
 
   onLogin() {
     if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter email and password';
+      this.errorMessage = this.languageService.translate('auth.emailRequired') + ' ' + this.languageService.translate('auth.passwordRequired');
       return;
     }
 
@@ -40,7 +42,7 @@ export class LoginComponent {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Login failed. Please try again';
+        this.errorMessage = error.error?.message || this.languageService.translate('auth.loginError');
       }
     });
   }

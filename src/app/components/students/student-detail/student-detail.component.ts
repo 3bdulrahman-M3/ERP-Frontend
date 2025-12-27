@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { StudentService, Student } from '../../../services/student.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { LanguageService } from '../../../services/language.service';
 import { formatDateTime12Hour } from '../../../utils/time.util';
 import { environment } from '../../../../environments/environment';
 import { ModalService } from '../../../services/modal.service';
@@ -24,7 +25,8 @@ export class StudentDetailComponent implements OnInit {
     private studentService: StudentService,
     private router: Router,
     private route: ActivatedRoute,
-    private modalService: ModalService
+    private modalService: ModalService,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
@@ -47,7 +49,7 @@ export class StudentDetailComponent implements OnInit {
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Failed to load student data';
+        this.errorMessage = error.error?.message || this.languageService.translate('students.loadError');
       }
     });
   }
@@ -61,10 +63,10 @@ export class StudentDetailComponent implements OnInit {
   deleteStudent() {
     if (this.student) {
       this.modalService.showConfirm({
-        title: 'Confirm Delete',
-        message: `Are you sure you want to delete student "${this.student.name}"?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel'
+        title: this.languageService.translate('common.confirm'),
+        message: `${this.languageService.translate('common.confirmDelete')} "${this.student.name}"?`,
+        confirmText: this.languageService.translate('common.delete'),
+        cancelText: this.languageService.translate('common.cancel')
       }).subscribe(confirmed => {
         if (confirmed) {
           this.studentService.deleteStudent(this.student!.id).subscribe({
@@ -75,8 +77,8 @@ export class StudentDetailComponent implements OnInit {
             },
             error: (error) => {
               this.modalService.showAlert({
-                title: 'Error',
-                message: error.error?.message || 'Failed to delete student'
+                title: this.languageService.translate('common.error'),
+                message: error.error?.message || this.languageService.translate('students.deleteError')
               }).subscribe();
             }
           });

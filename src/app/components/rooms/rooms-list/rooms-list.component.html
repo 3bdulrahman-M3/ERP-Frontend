@@ -1,4 +1,4 @@
-<app-layout pageTitle="Rooms">
+<app-layout [pageTitle]="languageService.translate('rooms.title')">
 <div class="p-4 space-y-3">
   <!-- Header -->
   <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-md p-4 text-white border border-gray-700">
@@ -6,9 +6,9 @@
       <div>
         <h2 class="text-xl font-bold mb-1 flex items-center">
           <span class="mr-2 text-2xl">🏠</span>
-          Rooms Management
+          {{ languageService.translate('rooms.title') }}
         </h2>
-        <p class="text-sm text-white/90">Manage all rooms in the system</p>
+        <p class="text-sm text-white/90">{{ languageService.translate('rooms.list') }}</p>
       </div>
       <button
         (click)="addNewRoom()"
@@ -17,46 +17,46 @@
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        <span>Add Room</span>
+        <span>{{ languageService.translate('rooms.add') }}</span>
       </button>
     </div>
   </div>
 
   <!-- Filters -->
   <div class="bg-white rounded-lg shadow-md p-3">
-      <h3 class="text-base font-bold text-gray-800 mb-3">Search Filters</h3>
+      <h3 class="text-base font-bold text-gray-800 mb-3">{{ languageService.translate('common.filter') }}</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
       <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Status</label>
+        <label class="block text-xs font-medium text-gray-700 mb-1">{{ languageService.translate('common.status') }}</label>
           <select
             [(ngModel)]="statusFilter"
             class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-500 focus:border-gray-500 outline-none text-sm"
           >
-          <option value="">All</option>
-          <option value="available">Available</option>
-          <option value="occupied">Occupied</option>
-          <option value="maintenance">Maintenance</option>
-          <option value="reserved">Reserved</option>
+          <option value="">{{ languageService.translate('common.all') }}</option>
+          <option value="available">{{ languageService.translate('rooms.available') }}</option>
+          <option value="occupied">{{ languageService.translate('rooms.occupied') }}</option>
+          <option value="maintenance">{{ languageService.translate('rooms.maintenance') }}</option>
+          <option value="reserved">{{ languageService.translate('rooms.reserved') }}</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Building</label>
+        <label class="block text-xs font-medium text-gray-700 mb-1">{{ languageService.translate('rooms.building') }}</label>
           <select
             [(ngModel)]="buildingFilter"
             class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-500 focus:border-gray-500 outline-none text-sm"
           >
-          <option [value]="null">All</option>
+          <option [value]="null">{{ languageService.translate('common.all') }}</option>
           <option *ngFor="let building of buildings" [value]="building.id">
             {{ building.name }}
           </option>
         </select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-gray-700 mb-1">Floor</label>
+        <label class="block text-xs font-medium text-gray-700 mb-1">{{ languageService.translate('rooms.floor') }}</label>
           <input
             type="number"
             [(ngModel)]="floorFilter"
-            placeholder="Floor number"
+            [placeholder]="languageService.translate('rooms.floor')"
           class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-gray-500 focus:border-gray-500 outline-none text-sm"
         />
       </div>
@@ -65,13 +65,13 @@
           (click)="applyFilters()"
           class="bg-gray-700 text-white px-4 py-1.5 rounded-lg font-semibold text-sm hover:bg-gray-800 transition-colors flex-1 border border-gray-600"
         >
-          Apply
+          {{ languageService.translate('common.apply') }}
         </button>
         <button
           (click)="clearFilters()"
           class="px-4 py-1.5 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 text-sm flex-1"
         >
-          Clear
+          {{ languageService.translate('common.clear') }}
         </button>
       </div>
     </div>
@@ -93,15 +93,34 @@
       *ngFor="let room of rooms"
       class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
     >
+      <!-- Room Image -->
+      <div class="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative overflow-hidden">
+        <img 
+          *ngIf="getRoomImage(room) !== null"
+          [src]="getImageUrl(getRoomImage(room)!)" 
+          [alt]="'Room ' + room.roomNumber" 
+          class="w-full h-full object-cover"
+          (error)="onImageError($event)"
+          loading="lazy"
+        />
+        <!-- Placeholder for rooms without images -->
+        <div *ngIf="!getRoomImage(room)" class="text-center text-gray-400">
+          <svg class="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p class="text-xs">{{ languageService.translate('common.image') || 'No Image' }}</p>
+        </div>
+      </div>
+      
       <div class="p-3">
       <div class="flex justify-between items-start mb-3">
         <div>
-          <h3 class="text-lg font-bold text-gray-800 mb-1">Room {{ room.roomNumber }}</h3>
+          <h3 class="text-lg font-bold text-gray-800 mb-1">{{ languageService.translate('rooms.roomNumber') }} {{ room.roomNumber }}</h3>
           <p class="text-xs text-gray-600" *ngIf="room.buildingInfo">
-            {{ room.buildingInfo.name }}<span *ngIf="room.floor"> - Floor {{ room.floor }}</span>
+            {{ room.buildingInfo.name }}<span *ngIf="room.floor"> - {{ languageService.translate('rooms.floor') }} {{ room.floor }}</span>
           </p>
           <p class="text-xs text-gray-600" *ngIf="!room.buildingInfo && room.floor">
-            Floor {{ room.floor }}
+            {{ languageService.translate('rooms.floor') }} {{ room.floor }}
           </p>
         </div>
         <span
@@ -144,7 +163,7 @@
 
       <!-- Services -->
       <div *ngIf="room.services && room.services.length > 0" class="mb-3">
-        <p class="text-xs text-gray-600 mb-1">Services:</p>
+        <p class="text-xs text-gray-600 mb-1">{{ languageService.translate('services.title') }}:</p>
         <div class="flex flex-wrap gap-1">
           <span
             *ngFor="let service of room.services"
@@ -160,13 +179,13 @@
           (click)="viewRoom(room.id)"
           class="flex-1 px-3 py-1.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold text-xs transition-colors border border-gray-600"
         >
-          View
+          {{ languageService.translate('common.view') }}
         </button>
         <button
           (click)="editRoom(room.id)"
           class="flex-1 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold text-xs transition-colors"
         >
-          Edit
+          {{ languageService.translate('common.edit') }}
         </button>
         <button
           (click)="deleteRoom(room.id, room.roomNumber)"
@@ -260,7 +279,7 @@
   <!-- Empty State -->
   <div *ngIf="!isLoading && rooms.length === 0" class="bg-white rounded-lg shadow-md p-8 text-center">
     <span class="text-4xl mb-2 block">🏠</span>
-    <h3 class="text-sm font-medium text-gray-900 mb-1">No rooms</h3>
+    <h3 class="text-sm font-medium text-gray-900 mb-1">{{ languageService.translate('rooms.noRooms') }}</h3>
     <p class="text-xs text-gray-500 mb-4">Start by adding a new room.</p>
     <button
       (click)="addNewRoom()"

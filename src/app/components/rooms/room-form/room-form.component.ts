@@ -199,7 +199,8 @@ export class RoomFormComponent implements OnInit {
         description: this.formData.description || undefined,
         status: this.formData.status,
         serviceIds: this.selectedServiceIds,
-        images: imageUrls.length > 0 ? imageUrls : undefined
+        // Always send images array - empty array means delete all images
+        images: imageUrls
       };
 
       this.roomService.updateRoom(this.roomId, updateData).subscribe({
@@ -320,33 +321,30 @@ export class RoomFormComponent implements OnInit {
   }
 
   removeImage(index: number) {
-    // Count existing URLs (not base64)
-    const existingCount = this.selectedImages.filter(img => 
-      typeof img === 'string' && !img.startsWith('data:')
-    ).length;
+    if (index < 0 || index >= this.selectedImages.length) {
+      return;
+    }
+
+    const imageToRemove = this.selectedImages[index];
+    const isBase64 = typeof imageToRemove === 'string' && imageToRemove.startsWith('data:');
     
-    if (index < existingCount) {
-      // Remove existing image URL
-      const urlIndex = this.selectedImages.findIndex((img, i) => 
-        i === index && typeof img === 'string' && !img.startsWith('data:')
-      );
-      if (urlIndex !== -1) {
-        this.selectedImages.splice(urlIndex, 1);
-      }
-    } else {
-      // Remove new image (base64)
-      const base64Index = index - existingCount;
-      if (base64Index >= 0 && base64Index < this.imageFiles.length) {
-        this.imageFiles.splice(base64Index, 1);
-        // Remove the corresponding base64 from selectedImages
-        const base64InSelected = this.selectedImages.findIndex((img, i) => 
-          i >= existingCount && typeof img === 'string' && img.startsWith('data:')
-        );
-        if (base64InSelected !== -1) {
-          this.selectedImages.splice(base64InSelected, 1);
+    // If it's a base64 image, find and remove the corresponding file first
+    if (isBase64) {
+      // Count how many base64 images come before this one
+      let base64Count = 0;
+      for (let i = 0; i < index; i++) {
+        if (typeof this.selectedImages[i] === 'string' && this.selectedImages[i].startsWith('data:')) {
+          base64Count++;
         }
       }
+      // Remove the file at the corresponding index
+      if (base64Count >= 0 && base64Count < this.imageFiles.length) {
+        this.imageFiles.splice(base64Count, 1);
+      }
     }
+    
+    // Remove from selectedImages array
+    this.selectedImages.splice(index, 1);
   }
 }
 

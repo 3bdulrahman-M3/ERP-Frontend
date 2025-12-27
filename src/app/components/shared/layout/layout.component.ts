@@ -4,6 +4,7 @@ import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter, Subscription } from 'rxjs';
 import { AuthService, User } from '../../../services/auth.service';
 import { NotificationsComponent } from '../../notifications/notifications.component';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-layout',
@@ -32,26 +33,27 @@ export class LayoutComponent implements OnInit, OnDestroy {
     const isStudent = this.currentUser.role === 'student';
     
     const allItems = [
-      { icon: '📊', label: 'Dashboard', route: '/dashboard', active: false, adminOnly: false, studentOnly: false },
-      { icon: '🎓', label: 'Students', route: '/dashboard/students', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🏠', label: 'Rooms', route: '/dashboard/rooms', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🏠', label: 'Available Rooms', route: '/dashboard/available-rooms', active: false, adminOnly: false, studentOnly: true },
-      { icon: '🏢', label: 'Buildings', route: '/dashboard/buildings', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🏛️', label: 'Colleges', route: '/dashboard/colleges', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🍽️', label: 'Meals', route: '/dashboard/meals', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🔧', label: 'Services', route: '/dashboard/services', active: false, adminOnly: true, studentOnly: false },
-      { icon: '🍴', label: 'Kitchen', route: '/dashboard/kitchen', active: false, adminOnly: false, studentOnly: true },
-      { icon: '📋', label: 'Check In/Out History', route: '/dashboard/student-check-in-out', active: false, adminOnly: false, studentOnly: true },
-      { icon: '⭐', label: 'My Review', route: '/dashboard/my-review', active: false, adminOnly: false, studentOnly: true },
-      { icon: '⭐', label: 'Reviews', route: '/dashboard/reviews', active: false, adminOnly: true, studentOnly: false },
-      { icon: '💬', label: 'Chat', route: '/dashboard/chat', active: false, adminOnly: true, studentOnly: false },
-      { icon: '📝', label: 'Reports', route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false, hasSubmenu: true },
-      { icon: '📷', label: 'Check In/Out', route: '/dashboard/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '📊', label: 'Check In/Out Report', route: '/dashboard/reports/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '💰', label: 'Financial Report', route: '/dashboard/reports/financial', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
-      { icon: '⭐', label: 'Preferences', route: '/dashboard/preferences', active: false, adminOnly: false, studentOnly: true },
-      { icon: '🏠', label: 'My Room', route: '/dashboard/my-room', active: false, adminOnly: false, studentOnly: true },
-      { icon: '⚙️', label: 'Settings', route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
+      { icon: '🏠', label: this.languageService.translate('menu.home'), route: '/', active: false, adminOnly: false, studentOnly: false },
+      { icon: '📊', label: this.languageService.translate('menu.dashboard'), route: '/dashboard', active: false, adminOnly: false, studentOnly: false },
+      { icon: '🎓', label: this.languageService.translate('menu.students'), route: '/dashboard/students', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏠', label: this.languageService.translate('menu.rooms'), route: '/dashboard/rooms', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏠', label: this.languageService.translate('menu.availableRooms'), route: '/dashboard/available-rooms', active: false, adminOnly: false, studentOnly: true },
+      { icon: '🏢', label: this.languageService.translate('menu.buildings'), route: '/dashboard/buildings', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🏛️', label: this.languageService.translate('menu.colleges'), route: '/dashboard/colleges', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🍽️', label: this.languageService.translate('menu.meals'), route: '/dashboard/meals', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🔧', label: this.languageService.translate('menu.services'), route: '/dashboard/services', active: false, adminOnly: true, studentOnly: false },
+      { icon: '🍴', label: this.languageService.translate('menu.kitchen'), route: '/dashboard/kitchen', active: false, adminOnly: false, studentOnly: true },
+      { icon: '📋', label: this.languageService.translate('menu.checkInOutHistory'), route: '/dashboard/student-check-in-out', active: false, adminOnly: false, studentOnly: true },
+      { icon: '⭐', label: this.languageService.translate('menu.myReview'), route: '/dashboard/my-review', active: false, adminOnly: false, studentOnly: true },
+      { icon: '⭐', label: this.languageService.translate('menu.reviews'), route: '/dashboard/reviews', active: false, adminOnly: true, studentOnly: false },
+      { icon: '💬', label: this.languageService.translate('menu.chat'), route: '/dashboard/chat', active: false, adminOnly: true, studentOnly: false },
+      { icon: '📝', label: this.languageService.translate('menu.reports'), route: '/dashboard/reports', active: false, adminOnly: true, studentOnly: false, hasSubmenu: true },
+      { icon: '📷', label: this.languageService.translate('menu.checkInOut'), route: '/dashboard/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '📊', label: this.languageService.translate('menu.checkInOutReport'), route: '/dashboard/reports/check-in-out', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '💰', label: this.languageService.translate('menu.financialReport'), route: '/dashboard/reports/financial', active: false, adminOnly: true, studentOnly: false, parentRoute: '/dashboard/reports' },
+      { icon: '⭐', label: this.languageService.translate('menu.preferences'), route: '/dashboard/preferences', active: false, adminOnly: false, studentOnly: true },
+      { icon: '🏠', label: this.languageService.translate('menu.myRoom'), route: '/dashboard/my-room', active: false, adminOnly: false, studentOnly: true },
+      { icon: '⚙️', label: this.languageService.translate('menu.settings'), route: '/dashboard/settings', active: false, adminOnly: false, studentOnly: false },
     ];
     
     const mainItems: typeof allItems = [];
@@ -90,19 +92,33 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUser();
-    this.menuItems = this.getMenuItems();
-    this.updateActiveMenu();
+    
+    // Ensure translations are loaded before creating menu
+    this.languageService.getTranslations().subscribe(() => {
+      this.menuItems = this.getMenuItems();
+      this.updateActiveMenu();
+    });
     
     // Subscribe to user changes
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       this.menuItems = this.getMenuItems();
       this.updateActiveMenu();
+    });
+    
+    // Subscribe to language changes to update menu labels
+    this.languageService.currentLanguage$.subscribe(() => {
+      // Ensure translations are loaded before updating menu
+      this.languageService.getTranslations().subscribe(() => {
+        this.menuItems = this.getMenuItems();
+        this.updateActiveMenu();
+      });
     });
     
     // Update menu on route changes
@@ -122,8 +138,13 @@ export class LayoutComponent implements OnInit, OnDestroy {
   updateActiveMenu() {
     const currentRoute = this.router.url;
     this.menuItems.forEach(item => {
-      item.active = currentRoute === item.route || 
-                   (item.route !== '/dashboard' && currentRoute.startsWith(item.route));
+      // Special handling for home route
+      if (item.route === '/') {
+        item.active = currentRoute === '/' || currentRoute === '/home';
+      } else {
+        item.active = currentRoute === item.route || 
+                     (item.route !== '/dashboard' && currentRoute.startsWith(item.route));
+      }
       
       // Check if any submenu item is active
       if (item.hasSubmenu) {
@@ -165,16 +186,20 @@ export class LayoutComponent implements OnInit, OnDestroy {
   logout() {
     this.authService.logout().subscribe({
       next: () => {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
       },
       error: () => {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/']);
       }
     });
   }
 
   navigateTo(route: string) {
     this.router.navigate([route]);
+  }
+
+  toggleLanguage(): void {
+    this.languageService.toggleLanguage();
   }
 }
 

@@ -189,6 +189,26 @@ export class AvailableRoomsComponent implements OnInit {
     }
   }
 
+  getRoomImage(room: Room): string | null {
+    if (!room.images) return null;
+    
+    // Handle different image formats
+    let images: string[] = [];
+    if (typeof room.images === 'string') {
+      try {
+        const parsed = JSON.parse(room.images);
+        images = Array.isArray(parsed) ? parsed : [room.images];
+      } catch (e) {
+        images = [room.images];
+      }
+    } else if (Array.isArray(room.images)) {
+      images = room.images;
+    }
+    
+    // Return first valid image
+    return images.length > 0 && images[0] ? images[0] : null;
+  }
+
   openRoomDetailsModal(room: Room) {
     this.selectedRoom = room;
     this.showRoomDetailsModal = true;

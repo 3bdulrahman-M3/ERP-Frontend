@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { StudentService } from '../../services/student.service';
 import { CollegeService, College } from '../../services/college.service';
 import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-complete-profile',
@@ -32,7 +33,8 @@ export class CompleteProfileComponent implements OnInit {
     private studentService: StudentService,
     private collegeService: CollegeService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {

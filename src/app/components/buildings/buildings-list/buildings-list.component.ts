@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { BuildingService, Building } from '../../../services/building.service';
 import { UploadService } from '../../../services/upload.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
+import { LanguageService } from '../../../services/language.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -42,7 +43,8 @@ export class BuildingsListComponent implements OnInit {
   constructor(
     private buildingService: BuildingService,
     private uploadService: UploadService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    public languageService: LanguageService
   ) {}
 
   getMapEmbedUrl(): SafeResourceUrl | null {
@@ -158,7 +160,17 @@ export class BuildingsListComponent implements OnInit {
       mapUrl: building.mapUrl || '',
       floors: building.floors?.toString() || ''
     };
-    this.selectedImage = building.image || null;
+    // Set selectedImage to the building's image URL (not base64)
+    if (building.image) {
+      // If it's a full URL, use it directly, otherwise construct the full URL
+      if (building.image.startsWith('http://') || building.image.startsWith('https://')) {
+        this.selectedImage = building.image;
+      } else {
+        this.selectedImage = this.getBuildingImageUrl(building.image);
+      }
+    } else {
+      this.selectedImage = null;
+    }
     this.imageFile = null;
     this.showEditModal = true;
   }
@@ -236,7 +248,7 @@ export class BuildingsListComponent implements OnInit {
     }
 
     this.isLoading = true;
-    let imageUrl: string | undefined = undefined;
+    let imageUrl: string | null | undefined = undefined;
 
     // Upload image if new file selected
     if (this.imageFile) {
@@ -254,16 +266,31 @@ export class BuildingsListComponent implements OnInit {
       }
       this.isUploadingImage = false;
     } else if (this.selectedImage) {
-      imageUrl = this.selectedImage;
+      // Keep existing image (check if it's a base64 preview or actual URL)
+      if (this.selectedImage.startsWith('data:')) {
+        // This is a preview of a new image, but imageFile is null
+        // This shouldn't happen, but if it does, keep the original
+        imageUrl = this.selectedBuilding.image || undefined;
+      } else {
+        // It's an existing URL, keep it
+        imageUrl = this.selectedImage;
+      }
+    } else {
+      // Image was removed (selectedImage is null and imageFile is null)
+      // Send null explicitly to delete the image
+      imageUrl = null;
     }
 
     const buildingData: any = {
       name: this.formData.name,
       address: this.formData.address || undefined,
       mapUrl: this.formData.mapUrl || undefined,
-      floors: this.formData.floors ? parseInt(this.formData.floors) : undefined,
-      image: imageUrl
+      floors: this.formData.floors ? parseInt(this.formData.floors) : undefined
     };
+    
+    // Always include image field - null if removed, URL if exists or new
+    // This ensures the backend knows to delete the image when imageUrl is null
+    buildingData.image = imageUrl;
 
     this.buildingService.updateBuilding(this.selectedBuilding.id, buildingData).subscribe({
       next: (response) => {
