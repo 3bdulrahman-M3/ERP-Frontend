@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ChangeDetectionStrategy, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { filter, interval, Subscription } from 'rxjs';
@@ -7,6 +7,7 @@ import { StudentService } from '../../services/student.service';
 import { RoomService } from '../../services/room.service';
 import { MealService, KitchenStatus } from '../../services/meal.service';
 import { CheckInOutService } from '../../services/check-in-out.service';
+import { BuildingService } from '../../services/building.service';
 import { LayoutComponent } from '../shared/layout/layout.component';
 import { ChatWidgetComponent } from '../chat/chat-widget.component';
 import { LanguageService } from '../../services/language.service';
@@ -22,7 +23,7 @@ import { environment } from '../../../environments/environment';
   styleUrl: './dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   currentUser: User | null = null;
   currentPageTitle = '';
   isSidebarOpen = true;
@@ -33,7 +34,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   totalRooms = 0;
   availableRooms = 0;
   occupiedRooms = 0;
+  totalBuildings = 0;
+  studentsCheckedIn = 0;
+  studentsCheckedOut = 0;
   isLoadingStats = false;
+  
+  // Chart data
+  chartData: any = null;
 
   // Kitchen data for students (brief)
   kitchenStatus: KitchenStatus | null = null;
@@ -85,6 +92,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private roomService: RoomService,
     private mealService: MealService,
     private checkInOutService: CheckInOutService,
+    private buildingService: BuildingService,
     private http: HttpClient,
     public router: Router,
     private route: ActivatedRoute,
@@ -183,20 +191,415 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.totalRooms = response.data.totalRooms || 0;
           this.availableRooms = response.data.availableRooms || 0;
           this.occupiedRooms = response.data.occupiedRooms || 0;
+          this.totalBuildings = response.data.totalBuildings || 0;
+          this.studentsCheckedIn = response.data.studentsCheckedIn || 0;
+          this.studentsCheckedOut = response.data.studentsCheckedOut || 0;
         }
-        this.isLoadingStats = false;
-        requestAnimationFrame(() => {
-          this.cdr.markForCheck();
-        });
+        this.loadAdditionalStats();
       },
       error: (error) => {
         console.error('Error loading statistics:', error);
         this.isLoadingStats = false;
-        requestAnimationFrame(() => {
-          this.cdr.markForCheck();
-        });
+        this.loadAdditionalStats();
       }
     });
+  }
+
+  loadAdditionalStats() {
+    // Load buildings count
+    this.buildingService.getBuildings().subscribe({
+      next: (response) => {
+        if (response.success && response.data?.pagination) {
+          this.totalBuildings = response.data.pagination.total || 0;
+        }
+        this.loadCheckInOutStats();
+      },
+      error: (error) => {
+        console.error('Error loading buildings:', error);
+        this.loadCheckInOutStats();
+      }
+    });
+  }
+
+  loadCheckInOutStats() {
+    // Load today's check-in/out statistics
+    const today = new Date().toISOString().split('T')[0];
+    this.checkInOutService.getAllRecords(1, 1000, { date: today }).subscribe({
+      next: (response) => {
+        if (response.success && response.data?.records) {
+          const records = response.data.records;
+          // Count students checked in today (status = 'checked_in' and no checkOutTime)
+          this.studentsCheckedIn = records.filter(r => 
+            r.status === 'checked_in' && !r.checkOutTime
+          ).length;
+          // Count students checked out today
+          this.studentsCheckedOut = records.filter(r => 
+            r.status === 'checked_out' || r.checkOutTime
+          ).length;
+        }
+        this.isLoadingStats = false;
+        this.cdr.markForCheck();
+        // Initialize charts after change detection - wait longer for DOM to render
+        setTimeout(() => {
+          this.initializeCharts();
+        }, 500);
+      },
+      error: (error) => {
+        console.error('Error loading check-in/out stats:', error);
+        this.isLoadingStats = false;
+        this.cdr.markForCheck();
+        // Initialize charts even on error
+        setTimeout(() => {
+          this.initializeCharts();
+        }, 500);
+      }
+    });
+  }
+
+  ngAfterViewInit() {
+    // Charts will be created after data loads
+  }
+
+  initializeCharts() {
+    // Initialize chart data with professional gradients and colors
+    this.chartData = {
+      roomsChart: {
+        labels: ['متاحة', 'مشغولة'],
+        data: [
+          this.availableRooms || 0,
+          this.occupiedRooms || 0
+        ],
+        backgroundColor: [
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(239, 68, 68, 0.8)'
+        ],
+        borderColor: [
+          'rgba(16, 185, 129, 1)',
+          'rgba(239, 68, 68, 1)'
+        ],
+        hoverBackgroundColor: [
+          'rgba(16, 185, 129, 1)',
+          'rgba(239, 68, 68, 1)'
+        ]
+      },
+      studentsChart: {
+        labels: ['بالداخل', 'بالخارج'],
+        data: [
+          this.studentsCheckedIn || 0,
+          this.studentsCheckedOut || 0
+        ],
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(245, 158, 11, 0.8)'
+        ],
+        borderColor: [
+          'rgba(59, 130, 246, 1)',
+          'rgba(245, 158, 11, 1)'
+        ],
+        hoverBackgroundColor: [
+          'rgba(59, 130, 246, 1)',
+          'rgba(245, 158, 11, 1)'
+        ]
+      }
+    };
+    
+    console.log('Chart data initialized:', this.chartData);
+    console.log('Available rooms:', this.availableRooms, 'Occupied:', this.occupiedRooms);
+    console.log('Students checked in:', this.studentsCheckedIn, 'Checked out:', this.studentsCheckedOut);
+    
+    // Wait for DOM to be ready and Chart.js to be loaded
+    let retries = 0;
+    const maxRetries = 15;
+    
+    const tryCreateCharts = () => {
+      // Check if elements exist in DOM
+      const roomsCtx = document.getElementById('roomsChart');
+      const studentsCtx = document.getElementById('studentsChart');
+      
+      if (typeof (window as any).Chart !== 'undefined' && roomsCtx && studentsCtx) {
+        // Chart.js is loaded and elements exist, create charts
+        setTimeout(() => {
+          this.ngZone.run(() => {
+            this.createCharts();
+          });
+        }, 100);
+      } else if (retries < maxRetries) {
+        // Not ready yet, retry
+        retries++;
+        console.log(`Retrying chart creation... Attempt ${retries}/${maxRetries}`, {
+          chartLoaded: typeof (window as any).Chart !== 'undefined',
+          roomsElement: !!roomsCtx,
+          studentsElement: !!studentsCtx
+        });
+        setTimeout(tryCreateCharts, 300);
+      } else {
+        console.error('Chart.js failed to load or elements not found after multiple retries', {
+          chartLoaded: typeof (window as any).Chart !== 'undefined',
+          roomsElement: !!roomsCtx,
+          studentsElement: !!studentsCtx
+        });
+      }
+    };
+    
+    this.ngZone.runOutsideAngular(() => {
+      setTimeout(tryCreateCharts, 200);
+    });
+  }
+
+  createCharts() {
+    // Check if Chart.js is loaded
+    if (typeof (window as any).Chart === 'undefined') {
+      console.log('Chart.js not loaded yet, retrying...');
+      setTimeout(() => this.createCharts(), 500);
+      return;
+    }
+
+    // Destroy existing charts if any
+    const roomsCtx = document.getElementById('roomsChart') as HTMLCanvasElement;
+    const studentsCtx = document.getElementById('studentsChart') as HTMLCanvasElement;
+    
+    if (!roomsCtx || !studentsCtx) {
+      console.log('Chart elements not found in DOM, retrying...', {
+        roomsCtx: !!roomsCtx,
+        studentsCtx: !!studentsCtx,
+        isLoading: this.isLoadingStats
+      });
+      setTimeout(() => this.createCharts(), 300);
+      return;
+    }
+
+    // Check if chartData is initialized
+    if (!this.chartData) {
+      console.log('Chart data not initialized yet');
+      return;
+    }
+
+    // Verify data exists
+    if (this.chartData.roomsChart.data.every((d: number) => d === 0) && 
+        this.chartData.studentsChart.data.every((d: number) => d === 0)) {
+      console.log('All chart data is zero, but creating charts anyway');
+    }
+
+    // Clear existing charts
+    const roomsChartInstance = (roomsCtx as any).chart;
+    const studentsChartInstance = (studentsCtx as any).chart;
+    if (roomsChartInstance) {
+      roomsChartInstance.destroy();
+    }
+    if (studentsChartInstance) {
+      studentsChartInstance.destroy();
+    }
+
+    // Rooms Chart - Professional Doughnut Chart
+    try {
+      const roomsChart = new (window as any).Chart(roomsCtx, {
+        type: 'doughnut',
+        data: {
+          labels: this.chartData.roomsChart.labels,
+          datasets: [{
+            data: this.chartData.roomsChart.data,
+            backgroundColor: this.chartData.roomsChart.backgroundColor,
+            borderColor: this.chartData.roomsChart.borderColor,
+            borderWidth: 3,
+            hoverBorderWidth: 4,
+            hoverOffset: 8,
+            cutout: '65%'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            animateRotate: true,
+            animateScale: true,
+            duration: 1500,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              align: 'center',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                font: {
+                  size: 13,
+                  weight: '600',
+                  family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                },
+                color: '#374151',
+                generateLabels: (chart: any) => {
+                  const data = chart.data;
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map((label: string, i: number) => {
+                      const dataset = data.datasets[0];
+                      const value = dataset.data[i];
+                      const total = dataset.data.reduce((a: number, b: number) => a + b, 0);
+                      const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                      return {
+                        text: `${label}: ${value} (${percentage}%)`,
+                        fillStyle: dataset.backgroundColor[i],
+                        strokeStyle: dataset.borderColor[i],
+                        lineWidth: 2,
+                        hidden: false,
+                        index: i
+                      };
+                    });
+                  }
+                  return [];
+                }
+              }
+            },
+            tooltip: {
+              enabled: true,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: 13
+              },
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              cornerRadius: 8,
+              displayColors: true,
+              callbacks: {
+                label: (context: any) => {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  return `${label}: ${value} غرفة (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+      (roomsCtx as any).chart = roomsChart;
+      console.log('✅ Rooms chart created successfully', {
+        data: this.chartData.roomsChart.data,
+        labels: this.chartData.roomsChart.labels
+      });
+    } catch (error) {
+      console.error('❌ Error creating rooms chart:', error);
+    }
+
+    // Students Check-in/out Chart - Professional Bar Chart
+    try {
+      const studentsChart = new (window as any).Chart(studentsCtx, {
+        type: 'bar',
+        data: {
+          labels: this.chartData.studentsChart.labels,
+          datasets: [{
+            label: 'عدد الطلاب',
+            data: this.chartData.studentsChart.data,
+            backgroundColor: this.chartData.studentsChart.backgroundColor,
+            borderColor: this.chartData.studentsChart.borderColor,
+            borderWidth: 2,
+            borderRadius: 12,
+            borderSkipped: false,
+            barThickness: 60,
+            maxBarThickness: 80
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 1500,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'end',
+              labels: {
+                usePointStyle: true,
+                pointStyle: 'circle',
+                padding: 15,
+                font: {
+                  size: 13,
+                  weight: '600',
+                  family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                },
+                color: '#374151'
+              }
+            },
+            tooltip: {
+              enabled: true,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: 13
+              },
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              cornerRadius: 8,
+              displayColors: true,
+              callbacks: {
+                label: (context: any) => {
+                  const label = context.dataset.label || '';
+                  const value = context.parsed.y || 0;
+                  return `${label}: ${value} طالب`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                font: {
+                  size: 12,
+                  weight: '600',
+                  family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                },
+                color: '#6B7280',
+                padding: 10
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)',
+                drawBorder: false,
+                lineWidth: 1
+              },
+              ticks: {
+                stepSize: 1,
+                precision: 0,
+                font: {
+                  size: 11,
+                  weight: '500',
+                  family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                },
+                color: '#6B7280',
+                padding: 10
+              }
+            }
+          }
+        }
+      });
+      (studentsCtx as any).chart = studentsChart;
+      console.log('✅ Students chart created successfully', {
+        data: this.chartData.studentsChart.data,
+        labels: this.chartData.studentsChart.labels
+      });
+    } catch (error) {
+      console.error('❌ Error creating students chart:', error);
+    }
   }
 
   checkStatsLoaded() {
@@ -575,6 +978,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     
     // Update countdown (it will handle its own change detection)
     this.updateCountdown();
+  }
+
+  getCurrentDate(): string {
+    return new Date().toLocaleDateString('ar-EG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 
   updateCountdown() {
