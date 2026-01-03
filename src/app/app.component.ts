@@ -15,7 +15,7 @@ import { LanguageService } from './services/language.service';
   `
 })
 export class AppComponent implements OnInit {
-  title = 'ERP System';
+  title = 'UNI-HOME';
 
   constructor(private languageService: LanguageService) {}
 
