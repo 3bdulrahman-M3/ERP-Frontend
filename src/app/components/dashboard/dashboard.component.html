@@ -6,7 +6,10 @@
       <div class="relative z-10">
         <div class="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 class="text-3xl font-bold mb-2">{{ languageService.translate('dashboard.welcome') }} {{ currentUser?.name }} 👋</h1>
+            <h1 class="text-3xl font-bold mb-2 flex items-center gap-2">
+              {{ languageService.translate('dashboard.welcome') }} {{ currentUser?.name }}
+              <img src="/assets/images/3d269b3beb668c449f56e10b64790f5fe9279f15 (1).gif" alt="Welcome" class="w-10 h-10 inline-block transform scale-x-[-1]" />
+            </h1>
             <p class="text-white/90 text-sm">
               {{ currentUser?.role === 'admin' ? languageService.translate('dashboard.adminDashboard') : languageService.translate('dashboard.studentDashboard') }}
             </p>
