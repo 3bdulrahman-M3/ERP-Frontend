@@ -111,6 +111,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.languageService.currentLanguage$.subscribe(() => {
       this.updateMealNames();
       this.updatePageTitle();
+      // Update charts when language changes
+      if (this.chartData) {
+        this.initializeCharts();
+      }
       this.cdr.markForCheck();
     });
     
@@ -238,7 +242,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
           ).length;
         }
         this.isLoadingStats = false;
-        this.cdr.markForCheck();
+          this.cdr.markForCheck();
         // Initialize charts after change detection - wait longer for DOM to render
         setTimeout(() => {
           this.initializeCharts();
@@ -264,7 +268,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     // Initialize chart data with professional gradients and colors
     this.chartData = {
       roomsChart: {
-        labels: ['متاحة', 'مشغولة'],
+        labels: [
+          this.languageService.translate('dashboard.available'),
+          this.languageService.translate('dashboard.occupied')
+        ],
         data: [
           this.availableRooms || 0,
           this.occupiedRooms || 0
@@ -283,7 +290,10 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         ]
       },
       studentsChart: {
-        labels: ['بالداخل', 'بالخارج'],
+        labels: [
+          this.languageService.translate('dashboard.inside'),
+          this.languageService.translate('dashboard.outside')
+        ],
         data: [
           this.studentsCheckedIn || 0,
           this.studentsCheckedOut || 0
@@ -472,7 +482,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                   const value = context.parsed || 0;
                   const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
                   const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                  return `${label}: ${value} غرفة (${percentage}%)`;
+                  const roomLabel = this.languageService.translate('rooms.title').toLowerCase();
+                  return `${label}: ${value} ${roomLabel} (${percentage}%)`;
                 }
               }
             }
@@ -495,7 +506,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         data: {
           labels: this.chartData.studentsChart.labels,
           datasets: [{
-            label: 'عدد الطلاب',
+            label: this.languageService.translate('dashboard.totalStudents'),
             data: this.chartData.studentsChart.data,
             backgroundColor: this.chartData.studentsChart.backgroundColor,
             borderColor: this.chartData.studentsChart.borderColor,
@@ -549,7 +560,8 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
                 label: (context: any) => {
                   const label = context.dataset.label || '';
                   const value = context.parsed.y || 0;
-                  return `${label}: ${value} طالب`;
+                  const studentLabel = this.languageService.translate('common.student').toLowerCase();
+                  return `${label}: ${value} ${studentLabel}`;
                 }
               }
             }

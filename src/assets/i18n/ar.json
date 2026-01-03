@@ -182,7 +182,18 @@
     "sec": "ثانية",
     "noUpcoming": "لا توجد وجبة قادمة",
     "closingTime": "وقت الإغلاق",
-    "nextMeal": "الوجبة التالية"
+    "nextMeal": "الوجبة التالية",
+    "totalBuildings": "عدد المباني",
+    "studentsCheckedIn": "الطلاب بالداخل",
+    "studentsCheckedOut": "الطلاب بالخارج",
+    "roomsDistribution": "توزيع الغرف",
+    "studentsStatusToday": "حالة الطلاب اليوم",
+    "total": "إجمالي",
+    "available": "متاحة",
+    "occupied": "مشغولة",
+    "inside": "بالداخل",
+    "outside": "بالخارج",
+    "loading": "جاري التحميل..."
   },
   "students": {
     "title": "الطلاب",

@@ -182,7 +182,18 @@
     "sec": "Sec",
     "noUpcoming": "No upcoming meal",
     "closingTime": "Kitchen closing time",
-    "nextMeal": "Next meal"
+    "nextMeal": "Next meal",
+    "totalBuildings": "Total Buildings",
+    "studentsCheckedIn": "Students Checked In",
+    "studentsCheckedOut": "Students Checked Out",
+    "roomsDistribution": "Rooms Distribution",
+    "studentsStatusToday": "Students Status Today",
+    "total": "Total",
+    "available": "Available",
+    "occupied": "Occupied",
+    "inside": "Inside",
+    "outside": "Outside",
+    "loading": "Loading..."
   },
   "students": {
     "title": "Students",

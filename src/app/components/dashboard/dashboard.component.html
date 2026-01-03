@@ -75,7 +75,7 @@
       <div class="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-all transform hover:scale-105">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-xs text-gray-600 mb-2 font-medium">عدد المباني</p>
+            <p class="text-xs text-gray-600 mb-2 font-medium">{{ languageService.translate('dashboard.totalBuildings') }}</p>
             <p class="text-3xl font-bold text-gray-800">
               <span *ngIf="!isLoadingStats">{{ totalBuildings }}</span>
               <span *ngIf="isLoadingStats" class="inline-block w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></span>
@@ -123,7 +123,7 @@
       <div class="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border-l-4 border-indigo-500 hover:shadow-xl transition-all transform hover:scale-105">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-xs text-gray-600 mb-2 font-medium">الطلاب بالداخل</p>
+            <p class="text-xs text-gray-600 mb-2 font-medium">{{ languageService.translate('dashboard.studentsCheckedIn') }}</p>
             <p class="text-3xl font-bold text-gray-800">
               <span *ngIf="!isLoadingStats">{{ studentsCheckedIn }}</span>
               <span *ngIf="isLoadingStats" class="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></span>
@@ -139,7 +139,7 @@
       <div class="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border-l-4 border-red-500 hover:shadow-xl transition-all transform hover:scale-105">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-xs text-gray-600 mb-2 font-medium">الطلاب بالخارج</p>
+            <p class="text-xs text-gray-600 mb-2 font-medium">{{ languageService.translate('dashboard.studentsCheckedOut') }}</p>
             <p class="text-3xl font-bold text-gray-800">
               <span *ngIf="!isLoadingStats">{{ studentsCheckedOut }}</span>
               <span *ngIf="isLoadingStats" class="inline-block w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
@@ -161,11 +161,11 @@
             <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-2 shadow-lg">
               <span class="material-icons text-white text-2xl">pie_chart</span>
             </div>
-            <span>توزيع الغرف</span>
+            <span>{{ languageService.translate('dashboard.roomsDistribution') }}</span>
           </h3>
           <div class="flex items-center gap-2 text-sm text-gray-600">
             <span class="material-icons text-xs">info</span>
-            <span>إجمالي: {{ totalRooms }}</span>
+            <span>{{ languageService.translate('dashboard.total') }}: {{ totalRooms }}</span>
           </div>
         </div>
         <div class="h-80 relative">
@@ -173,18 +173,18 @@
           <div *ngIf="isLoadingStats" class="flex items-center justify-center h-full">
             <div class="text-center">
               <div class="inline-block w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-              <p class="text-sm text-gray-500">جاري التحميل...</p>
+              <p class="text-sm text-gray-500">{{ languageService.translate('dashboard.loading') }}</p>
             </div>
           </div>
         </div>
         <div class="mt-4 grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-green-500"></div>
-            <span class="text-sm text-gray-600">متاحة: <span class="font-bold text-gray-800">{{ availableRooms }}</span></span>
+            <span class="text-sm text-gray-600">{{ languageService.translate('dashboard.available') }}: <span class="font-bold text-gray-800">{{ availableRooms }}</span></span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-red-500"></div>
-            <span class="text-sm text-gray-600">مشغولة: <span class="font-bold text-gray-800">{{ occupiedRooms }}</span></span>
+            <span class="text-sm text-gray-600">{{ languageService.translate('dashboard.occupied') }}: <span class="font-bold text-gray-800">{{ occupiedRooms }}</span></span>
           </div>
         </div>
       </div>
@@ -196,7 +196,7 @@
             <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-2 shadow-lg">
               <span class="material-icons text-white text-2xl">bar_chart</span>
             </div>
-            <span>حالة الطلاب اليوم</span>
+            <span>{{ languageService.translate('dashboard.studentsStatusToday') }}</span>
           </h3>
           <div class="flex items-center gap-2 text-sm text-gray-600">
             <span class="material-icons text-xs">today</span>
@@ -208,18 +208,18 @@
           <div *ngIf="isLoadingStats" class="flex items-center justify-center h-full">
             <div class="text-center">
               <div class="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-              <p class="text-sm text-gray-500">جاري التحميل...</p>
+              <p class="text-sm text-gray-500">{{ languageService.translate('dashboard.loading') }}</p>
             </div>
           </div>
         </div>
         <div class="mt-4 grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span class="text-sm text-gray-600">بالداخل: <span class="font-bold text-gray-800">{{ studentsCheckedIn }}</span></span>
+            <span class="text-sm text-gray-600">{{ languageService.translate('dashboard.inside') }}: <span class="font-bold text-gray-800">{{ studentsCheckedIn }}</span></span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full bg-amber-500"></div>
-            <span class="text-sm text-gray-600">بالخارج: <span class="font-bold text-gray-800">{{ studentsCheckedOut }}</span></span>
+            <span class="text-sm text-gray-600">{{ languageService.translate('dashboard.outside') }}: <span class="font-bold text-gray-800">{{ studentsCheckedOut }}</span></span>
           </div>
         </div>
       </div>
