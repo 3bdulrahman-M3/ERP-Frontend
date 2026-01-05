@@ -254,7 +254,26 @@
     "assignStudent": "Assign Student",
     "removeStudent": "Remove Student",
     "maintenance": "Maintenance",
-    "reserved": "Reserved"
+    "reserved": "Reserved",
+    "roomType": {
+      "single": "Single",
+      "shared": "Shared"
+    },
+    "roomImages": "Room Images",
+    "noImagesAvailable": "No Images Available",
+    "roomPrice": "Room Price",
+    "bedPrice": "Bed Price",
+    "totalBeds": "Total Beds",
+    "availableBeds": "Available Beds",
+    "roomTypeLabel": "Room Type",
+    "status": "Status",
+    "availableServices": "Available Services",
+    "studentsInRoom": "Students in Room",
+    "noStudentsInRoom": "No students currently in this room",
+    "checkInDate": "Check In Date",
+    "checkOutDate": "Check Out Date",
+    "notSpecified": "Not specified",
+    "loadingRoomDetails": "Loading room details..."
   },
   "buildings": {
     "title": "Buildings",

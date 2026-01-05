@@ -253,7 +253,26 @@
     "assignStudent": "تعيين طالب",
     "removeStudent": "إزالة طالب",
     "maintenance": "صيانة",
-    "reserved": "محجوزة"
+    "reserved": "محجوزة",
+    "roomType": {
+      "single": "فردية",
+      "shared": "مشتركة"
+    },
+    "roomImages": "صور الغرفة",
+    "noImagesAvailable": "لا توجد صور متاحة",
+    "roomPrice": "سعر الغرفة",
+    "bedPrice": "سعر السرير",
+    "totalBeds": "إجمالي الأسرّة",
+    "availableBeds": "الأسرّة المتاحة",
+    "roomTypeLabel": "نوع الغرفة",
+    "status": "الحالة",
+    "availableServices": "الخدمات المتاحة",
+    "studentsInRoom": "الطلاب في الغرفة",
+    "noStudentsInRoom": "لا يوجد طلاب حالياً في هذه الغرفة",
+    "checkInDate": "تاريخ الدخول",
+    "checkOutDate": "تاريخ الخروج",
+    "notSpecified": "غير محدد",
+    "loadingRoomDetails": "جاري تحميل تفاصيل الغرفة..."
   },
   "buildings": {
     "title": "المباني",

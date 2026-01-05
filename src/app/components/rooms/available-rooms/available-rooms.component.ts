@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { RoomRequestService, RoomRequest } from '../../../services/room-request.service';
 import { RoomService, Room, RoomStudent } from '../../../services/room.service';
+import { LanguageService } from '../../../services/language.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -35,7 +36,8 @@ export class AvailableRoomsComponent implements OnInit {
 
   constructor(
     private roomRequestService: RoomRequestService,
-    private roomService: RoomService
+    private roomService: RoomService,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {

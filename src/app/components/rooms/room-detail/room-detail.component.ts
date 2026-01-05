@@ -8,6 +8,7 @@ import { RoomRequestService, RoomRequest } from '../../../services/room-request.
 import { PaymentService } from '../../../services/payment.service';
 import { LayoutComponent } from '../../shared/layout/layout.component';
 import { ModalService } from '../../../services/modal.service';
+import { LanguageService } from '../../../services/language.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -58,7 +59,8 @@ export class RoomDetailComponent implements OnInit {
     private paymentService: PaymentService,
     private router: Router,
     private route: ActivatedRoute,
-    private modalService: ModalService
+    private modalService: ModalService,
+    public languageService: LanguageService
   ) {}
 
   private getSuggestedAmountDue(): number {
