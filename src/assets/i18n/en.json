@@ -284,6 +284,7 @@
     "address": "Address",
     "floors": "Floors",
     "rooms": "Rooms",
+    "students": "Students",
     "noBuildings": "No buildings found"
   },
   "colleges": {
